@@ -27,7 +27,7 @@ class Permission(StrEnum):
 
 ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
     Role.ADMIN: frozenset(Permission),
-    Role.OFFICER: frozenset({Permission.CONSOLE_ACCESS, Permission.VERIFICATION_WORKFLOW, Permission.CASE_WORK, Permission.CASE_DECIDE, Permission.REPORTS, Permission.DOCUMENT_CREATE, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE}),
+    Role.OFFICER: frozenset({Permission.CONSOLE_ACCESS, Permission.VERIFICATION_WORKFLOW, Permission.CASE_WORK, Permission.CASE_DECIDE, Permission.ANALYTICS, Permission.REPORTS, Permission.DOCUMENT_CREATE, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE}),
     Role.SUPERVISOR: frozenset({Permission.CONSOLE_ACCESS, Permission.VERIFICATION_WORKFLOW, Permission.CASE_WORK, Permission.CASE_ASSIGN, Permission.CASE_DECIDE, Permission.CASE_RESOLVE, Permission.OVERSIGHT, Permission.ANALYTICS, Permission.AUDIT, Permission.REPORTS, Permission.DOCUMENT_CREATE, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE}),
     Role.AUDITOR: frozenset({Permission.CONSOLE_ACCESS, Permission.AUDIT, Permission.REPORTS}),
 }

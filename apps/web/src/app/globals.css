@@ -227,3 +227,36 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { color: var(--primary-strong); lett
 .case-note-form textarea, .case-decision-form textarea { border: 1px solid var(--border); border-radius: 7px; font: inherit; padding: 10px; resize: vertical; }
 @media (max-width: 800px) { .case-filters { grid-template-columns: 1fr 1fr; } .case-detail-grid { grid-template-columns: 1fr; } .case-header { display: grid; } }
 @media (max-width: 520px) { .case-filters { grid-template-columns: 1fr; } .case-demo-banner { display: grid; } }
+.analytics-demo-banner { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; color: #166534; display: flex; gap: 12px; margin-bottom: 16px; padding: 12px 14px; }
+.analytics-demo-banner strong { font-size: 12px; letter-spacing: .08em; white-space: nowrap; }
+.analytics-demo-banner span { font-size: 13px; }
+.analytics-toolbar, .audit-toolbar { align-items: end; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+.analytics-toolbar label, .audit-toolbar label, .report-form label { color: var(--text-secondary); display: grid; font-size: 12px; font-weight: 700; gap: 6px; }
+.analytics-toolbar select, .audit-toolbar input, .report-form select, .report-form input { background: white; border: 1px solid var(--border); border-radius: 7px; min-height: 40px; padding: 0 10px; }
+.timezone-note { color: var(--text-secondary); font-size: 12px; }
+.analytics-metric-grid { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }
+.analytics-metric { align-items: center; display: flex; gap: 12px; }
+.analytics-metric > span { align-items: center; background: #eff6ff; border-radius: 8px; color: #1d4ed8; display: flex; height: 40px; justify-content: center; width: 40px; }
+.analytics-metric small { color: var(--text-secondary); display: block; font-size: 12px; }
+.analytics-metric strong { display: block; font-size: 26px; margin-top: 3px; }
+.analytics-grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+.analytics-grid h2, .health-card strong { margin: 0; }
+.chart-summary { color: var(--text-secondary); line-height: 1.5; min-height: 44px; }
+.analytics-bars { display: grid; gap: 13px; margin-top: 16px; }
+.analytics-bars > div > div:first-child { display: flex; justify-content: space-between; font-size: 12px; text-transform: capitalize; }
+.bar-track { background: #e2e8f0; border-radius: 999px; height: 9px; margin-top: 6px; overflow: hidden; }
+.bar-fill { background: #2563eb; border-radius: 999px; height: 100%; min-width: 2px; }
+.module-health-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); margin-top: 16px; }
+.health-card { border: 1px solid var(--border); border-radius: 8px; display: grid; gap: 6px; padding: 12px; }
+.health-card span { color: var(--text-secondary); font-size: 12px; }
+.health-card small { color: var(--text-secondary); line-height: 1.4; margin-top: 5px; }
+.audit-toolbar { justify-content: start; }
+.audit-toolbar label { min-width: 240px; }
+.audit-toolbar input { font-weight: 400; }
+.pagination { align-items: center; display: flex; gap: 12px; justify-content: end; margin-top: 18px; }
+.pagination span { color: var(--text-secondary); font-size: 12px; }
+.report-form { align-items: end; display: grid; gap: 14px; grid-template-columns: 220px 1fr auto; }
+.report-form label { font-size: 12px; }
+@media (max-width: 900px) { .analytics-metric-grid, .module-health-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 650px) { .analytics-grid, .report-form { grid-template-columns: 1fr; } .analytics-metric-grid, .module-health-grid { grid-template-columns: 1fr 1fr; } .analytics-demo-banner { display: grid; } }
+@media (max-width: 420px) { .analytics-metric-grid, .module-health-grid { grid-template-columns: 1fr; } }

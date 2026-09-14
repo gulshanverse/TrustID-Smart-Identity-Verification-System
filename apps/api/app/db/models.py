@@ -321,6 +321,18 @@ class CaseDecisionModel(Base):
     case: Mapped[CaseModel] = relationship(back_populates="decisions")
 
 
+class ReportModel(Base):
+    __tablename__ = "reports"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    report_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    reference_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    reference_id: Mapped[UUID] = mapped_column(nullable=False, index=True)
+    generated_by: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    report_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+
 class AuditEventModel(Base):
     __tablename__ = "audit_events"
 

@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.responses import Response
 
+from app.api.v1.analytics import router as analytics_router
+from app.api.v1.audit import router as audit_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.cases import router as cases_router
 from app.api.v1.console import router as console_router
@@ -16,6 +18,7 @@ from app.api.v1.face import router as face_router
 from app.api.v1.health import router as health_router
 from app.api.v1.intelligence import router as intelligence_router
 from app.api.v1.ocr import router as ocr_router
+from app.api.v1.reports import router as reports_router
 from app.api.v1.tampering import router as tampering_router
 from app.core.config import get_settings
 from app.domain.documents import ObjectStorage, S3ObjectStorage, StoredObject
@@ -79,3 +82,6 @@ app.include_router(tampering_router, prefix="/api/v1")
 app.include_router(face_router, prefix="/api/v1")
 app.include_router(intelligence_router, prefix="/api/v1")
 app.include_router(cases_router, prefix="/api/v1")
+app.include_router(analytics_router, prefix="/api/v1")
+app.include_router(audit_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")

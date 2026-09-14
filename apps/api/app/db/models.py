@@ -64,6 +64,7 @@ class DocumentModel(Base):
     verification: Mapped[VerificationModel] = relationship(back_populates="documents")
     ocr_results: Mapped[list[OCRResultModel]] = relationship(back_populates="document", cascade="all, delete-orphan")
     tampering_results: Mapped[list[TamperingResultModel]] = relationship(back_populates="document", cascade="all, delete-orphan")
+    face_verifications: Mapped[list[FaceVerificationModel]] = relationship(back_populates="document", cascade="all, delete-orphan")
 
 
 class OCRResultModel(Base):
@@ -157,6 +158,40 @@ class TamperingEvidenceModel(Base):
     finding: Mapped[TamperingFindingModel] = relationship(back_populates="evidence")
 
 
+class FaceVerificationModel(Base):
+    __tablename__ = "face_verifications"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    verification_id: Mapped[UUID] = mapped_column(ForeignKey("verifications.id", ondelete="CASCADE"), index=True)
+    document_id: Mapped[UUID] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(32), nullable=False)
+    similarity_score: Mapped[float | None] = mapped_column(nullable=True)
+    confidence: Mapped[float | None] = mapped_column(nullable=True)
+    provider: Mapped[str] = mapped_column(String(128), nullable=False)
+    provider_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    summary: Mapped[str] = mapped_column(String, nullable=False)
+    failure_reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    document_face_quality: Mapped[str] = mapped_column(String(32), nullable=False)
+    presented_face_quality: Mapped[str] = mapped_column(String(32), nullable=False)
+    face_count: Mapped[int | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    document: Mapped[DocumentModel] = relationship(back_populates="face_verifications")
+    evidence: Mapped[list[FaceVerificationEvidenceModel]] = relationship(back_populates="result", cascade="all, delete-orphan")
+
+
+class FaceVerificationEvidenceModel(Base):
+    __tablename__ = "face_verification_evidence"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    face_verification_id: Mapped[UUID] = mapped_column(ForeignKey("face_verifications.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    value: Mapped[str] = mapped_column(String(160), nullable=False)
+    explanation: Mapped[str] = mapped_column(String, nullable=False)
+    result: Mapped[FaceVerificationModel] = relationship(back_populates="evidence")
+
+
 class AuditEventModel(Base):
     __tablename__ = "audit_events"
 
@@ -167,6 +202,7 @@ class AuditEventModel(Base):
     document_id: Mapped[UUID | None] = mapped_column(ForeignKey("documents.id", ondelete="RESTRICT"), nullable=True, index=True)
     ocr_result_id: Mapped[UUID | None] = mapped_column(ForeignKey("ocr_results.id", ondelete="SET NULL"), nullable=True, index=True)
     tampering_result_id: Mapped[UUID | None] = mapped_column(ForeignKey("tampering_results.id", ondelete="SET NULL"), nullable=True, index=True)
+    face_verification_id: Mapped[UUID | None] = mapped_column(ForeignKey("face_verifications.id", ondelete="SET NULL"), nullable=True, index=True)
     provider: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)

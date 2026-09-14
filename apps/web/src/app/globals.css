@@ -161,3 +161,6 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { color: var(--primary-strong); lett
 .evidence-item small { color: var(--text-muted); font-size: 11px; line-height: 1.5; margin-top: 3px; }
 .clean-finding { color: var(--text-secondary); font-weight: 700; }
 @media (max-width: 680px) { .scenario-select { max-width: none; } }
+.face-result { margin-top: 16px; }
+.face-result input[type="file"] { border: 1px solid var(--border); border-radius: 8px; display: block; margin: 8px 0 14px; max-width: 100%; padding: 8px; width: 100%; }
+.face-result .evidence-item p { color: var(--text-secondary); font-size: 12px; line-height: 1.5; margin: 6px 0; }

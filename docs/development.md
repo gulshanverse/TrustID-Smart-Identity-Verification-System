@@ -16,9 +16,9 @@ Create a virtual environment with `python3 -m venv .venv`, activate it, and inst
 
 Authentication endpoints are `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, and `GET /api/v1/auth/me`. The browser session uses an HttpOnly cookie. Run `.venv/bin/pytest`, `.venv/bin/ruff check app tests migrations`, `.venv/bin/mypy app`, and `.venv/bin/alembic upgrade --sql head` from `apps/api`.
 
-## Phase 3 console scope
+## SIH demo workflow
 
-The console shell includes dashboard, new verification, history, cases, investigation, analytics, audit, reports, and settings placeholders. It intentionally does not upload documents, run OCR, call AI providers, calculate risk, create fake records, or claim system health without connected checks.
+Use `/console/demo` to orient judges to the five supported fictional scenarios: genuine/low risk, tampered document, face mismatch, expired document, and multiple issues. The golden path is `/console/verify` followed by persisted OCR, validation, technical tampering, face comparison, explainable risk, optional case work, audit, analytics, and report generation. The deterministic demo providers require no external government API. Arbitrary real uploads cannot receive fabricated demo results.
 
 ## Branch and commit expectations
 
@@ -26,4 +26,4 @@ Use small, descriptive conventional commits. Preserve history, do not force-push
 
 ## Scope discipline
 
-Do not add document upload, real OCR, tampering analysis, face verification, risk calculation, government integration, blockchain, production AI providers, case functionality, analytics calculations, or report generation until their explicitly assigned phase. Refer to [`TRUSTID_MASTER_SPEC.md`](../TRUSTID_MASTER_SPEC.md) and [`docs/authentication.md`](./authentication.md) for the authoritative boundaries.
+Do not add government integration, blockchain, production AI providers, surveillance, demographic or emotion inference, automatic approval/rejection, or fabricated metrics. Risk thresholds remain deterministic prototype semantics: LOW 0–29, REVIEW 30–69, HIGH 70–100. Refer to [`TRUSTID_MASTER_SPEC.md`](../TRUSTID_MASTER_SPEC.md) and [`docs/authentication.md`](./authentication.md) for the authoritative boundaries.

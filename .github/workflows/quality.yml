@@ -38,3 +38,4 @@ jobs:
       - run: pytest
       - run: ruff check app tests
       - run: mypy app
+      - run: alembic upgrade --sql head

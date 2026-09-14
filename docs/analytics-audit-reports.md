@@ -4,11 +4,11 @@ Phase 11 exposes accumulated TrustID records as operational analytics, an author
 
 ## Counting semantics
 
-Analytics count distinct persisted `verifications` within the selected UTC period. Repeated OCR, validation, tampering, face, or risk analysis rows are analysis runs, not new verifications. The overview's completed count is the number of distinct verifications with a latest persisted risk assessment in the selected period; pending is total minus completed. Historical risk distribution uses the latest persisted assessment per verification and does not recompute an old assessment with current rules.
+Analytics count distinct persisted `verifications` within the selected UTC period. Repeated OCR, validation, tampering, face, or risk analysis rows are analysis runs, not new verifications. The overview's completed count is the number of distinct verifications with a latest persisted risk assessment in the selected period; failed is derived from persisted verification lifecycle status; pending is total minus completed minus failed. Historical risk distribution uses the latest persisted assessment per verification and does not recompute an old assessment with current rules.
 
 Case metrics count persisted cases linked to verifications. They distinguish total cases, status distribution, priority distribution, and cases linked to a high-risk assessment. A case does not duplicate its verification. Module metrics are grouped from persisted OCR, validation, tampering, finding, and face rows. Empty data is represented by zero counts where a count is meaningful and `null` or `Unavailable` where a metric cannot be calculated.
 
-All API date boundaries are normalized to **UTC**. Supported preset ranges are 7, 30, and 90 days; custom ISO date boundaries are also accepted by the API. Trend queries group persisted verification creation timestamps by UTC calendar date.
+All API date boundaries are normalized to **UTC**. Supported preset ranges are 7, 30, and 90 days; custom ISO date boundaries are also accepted by the API. Risk level, case status, case priority, and document type filters first define one matching verification cohort; every KPI, module metric, and trend is calculated from that cohort. Trend queries group persisted verification creation timestamps by UTC calendar date.
 
 ## Analytics API and permissions
 

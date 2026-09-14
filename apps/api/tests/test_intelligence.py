@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from app.db.models import AuditEventModel, Base, RiskAssessmentModel
+from app.db.models import AuditEventModel, Base, RiskAssessmentModel, VerificationModel
 from app.domain.documents import (
     DocumentLifecycle,
     DocumentRecord,
@@ -103,6 +103,22 @@ def test_verification_orchestration_persists_risk_and_audit_events(db: Session) 
     assert stored is not None
     events = db.scalars(select(AuditEventModel).where(AuditEventModel.verification_id == verification.id)).all()
     assert [event.event_type for event in events][-4:] == ["DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED"] or events[-1].event_type == "VERIFICATION_ANALYSIS_COMPLETED"
+
+
+def test_repeated_analysis_is_idempotent_and_marks_lifecycle_complete(db: Session) -> None:
+    actor = uuid4()
+    storage = InMemoryObjectStorage()
+    documents = DocumentService(storage, SqlAlchemyDocumentRepository(db))
+    verification = documents.create_verification(actor, f"repeat-{actor}@example.test", "Officer")
+    document = documents.upload(verification.id, actor, "demo.pdf", "application/pdf", b"%PDF-1.7\nTRUSTID-DEMO-OCR:demo\nTRUSTID-TAMPERING:CLEAN\nTRUSTID-FACE:DOCUMENT", DocumentType.PASSPORT)
+    OCRService(storage, SqlAlchemyOCRRepository(db), __import__("app.domain.ocr", fromlist=["DemoOCRProvider"]).DemoOCRProvider()).process(document.id, actor)
+    TamperingService(storage, SqlAlchemyTamperingRepository(db), __import__("app.domain.tampering", fromlist=["DemoTamperingProvider"]).DemoTamperingProvider()).process(document.id, actor)
+    FaceVerificationService(storage, SqlAlchemyFaceRepository(db), __import__("app.domain.face", fromlist=["DemoFaceVerificationProvider"]).DemoFaceVerificationProvider()).process(document.id, actor, b"\xff\xd8\xffTRUSTID-FACE:MATCH", "image/jpeg", __import__("app.domain.face", fromlist=["FaceScenario"]).FaceScenario.MATCH)
+    first = VerificationAnalysisService(db, actor).analyze(verification.id)
+    second = VerificationAnalysisService(db, actor).analyze(verification.id)
+    assert first.risk.id == second.risk.id
+    assert db.scalar(select(VerificationModel).where(VerificationModel.id == verification.id)).status == "COMPLETED"
+    assert db.scalars(select(RiskAssessmentModel).where(RiskAssessmentModel.verification_id == verification.id)).all().__len__() == 1
 
 
 def test_orchestration_does_not_fabricate_missing_modules(db: Session) -> None:

@@ -43,6 +43,7 @@ class VerificationModel(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="PENDING")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     documents: Mapped[list[DocumentModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")
     risk_assessments: Mapped[list[RiskAssessmentModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")

@@ -43,7 +43,7 @@ class SqlAlchemyDocumentRepository:
             self.db.add(User(id=owner_id, email=email, display_name=display_name, password_hash="managed-by-auth-service", is_active=True))
             self.db.flush()
         now = datetime.now(UTC)
-        model = VerificationModel(id=uuid4(), owner_id=owner_id, created_at=now)
+        model = VerificationModel(id=uuid4(), owner_id=owner_id, status="PENDING", created_at=now)
         self.db.add(model)
         self.db.flush()
         self.db.add(AuditEventModel(event_type="VERIFICATION_CREATED", actor_id=owner_id, verification_id=model.id, document_id=None, status="CREATED", created_at=now))

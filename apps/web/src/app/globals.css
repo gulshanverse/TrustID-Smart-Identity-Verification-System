@@ -184,3 +184,46 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { color: var(--primary-strong); lett
 .officer-decision span { color: var(--text-secondary); font-size: 13px; }
 .officer-decision div { display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 680px) { .risk-banner { grid-template-columns: 1fr; } }
+.case-demo-banner { background: #f8fafc; border: 1px solid #dbe4ee; border-radius: 10px; color: #334155; display: flex; gap: 12px; margin-bottom: 16px; padding: 12px 14px; }
+.case-demo-banner strong { color: #0f3d5e; font-size: 12px; letter-spacing: .08em; }
+.case-demo-banner span { font-size: 13px; }
+.case-filters { align-items: end; display: grid; gap: 12px; grid-template-columns: 1fr 180px 180px auto; }
+.case-filters label { display: grid; gap: 6px; }
+.case-filters label > span { color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+.case-search { align-items: center; border: 1px solid var(--border); border-radius: 7px; display: flex; gap: 7px; padding: 0 10px; }
+.case-search input { border: 0; min-height: 38px; outline: 0; width: 100%; }
+.case-filters select, .case-decision-form select { background: white; border: 1px solid var(--border); border-radius: 7px; min-height: 40px; padding: 0 10px; }
+.case-table-heading, .case-section-heading { align-items: center; display: flex; gap: 10px; justify-content: space-between; }
+.case-table-heading h2, .case-section-heading h3 { margin: 0; }
+.case-table-heading p { color: var(--text-secondary); margin: 4px 0 0; }
+.case-table-wrap { overflow-x: auto; }
+.case-table { border-collapse: collapse; margin-top: 18px; min-width: 680px; width: 100%; }
+.case-table th, .case-table td { border-bottom: 1px solid var(--border); padding: 12px 10px; text-align: left; }
+.case-table th { color: var(--text-secondary); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.case-table td:first-child { display: grid; gap: 3px; }
+.case-table td:first-child span { color: var(--text-secondary); font-size: 12px; }
+.case-pill { border: 1px solid #cbd5e1; border-radius: 999px; display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 8px; white-space: nowrap; }
+.priority-critical, .priority-high, .status-escalated { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.priority-medium, .status-under_review { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+.priority-low, .status-open { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+.status-resolved, .status-closed { background: #f1f5f9; color: #475569; }
+.button-small { font-size: 12px; min-height: 32px; padding: 6px 9px; }
+.case-empty { align-items: center; color: var(--text-secondary); display: grid; gap: 8px; justify-items: center; padding: 46px 12px; text-align: center; }
+.case-header { align-items: start; display: flex; justify-content: space-between; gap: 20px; }
+.case-header h2 { margin: 5px 0; }
+.case-header p { color: var(--text-secondary); margin: 0; }
+.case-header-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.eyebrow { color: var(--text-secondary); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.case-actions { border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 15px; }
+.case-detail-grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-top: 16px; }
+.case-evidence-list, .case-notes, .case-timeline { display: grid; gap: 10px; margin-top: 14px; }
+.case-evidence-list article, .case-notes article { border: 1px solid var(--border); border-radius: 8px; padding: 11px; }
+.case-evidence-list article > div { display: flex; justify-content: space-between; gap: 10px; }
+.case-evidence-list article span, .case-evidence-list article small, .case-notes article span { color: var(--text-secondary); font-size: 12px; }
+.case-evidence-list article p, .case-notes article p { line-height: 1.5; margin: 7px 0; }
+.case-timeline > div { border-left: 2px solid #cbd5e1; display: grid; gap: 3px; padding: 2px 0 9px 12px; }
+.case-timeline span, .case-timeline small { color: var(--text-secondary); font-size: 11px; }
+.case-note-form, .case-decision-form { display: grid; gap: 10px; margin-top: 14px; }
+.case-note-form textarea, .case-decision-form textarea { border: 1px solid var(--border); border-radius: 7px; font: inherit; padding: 10px; resize: vertical; }
+@media (max-width: 800px) { .case-filters { grid-template-columns: 1fr 1fr; } .case-detail-grid { grid-template-columns: 1fr; } .case-header { display: grid; } }
+@media (max-width: 520px) { .case-filters { grid-template-columns: 1fr; } .case-demo-banner { display: grid; } }

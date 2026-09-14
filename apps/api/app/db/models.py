@@ -46,6 +46,7 @@ class VerificationModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     documents: Mapped[list[DocumentModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")
     risk_assessments: Mapped[list[RiskAssessmentModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")
+    cases: Mapped[list[CaseModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")
 
 
 class DocumentModel(Base):
@@ -254,6 +255,72 @@ class RiskFactorModel(Base):
     assessment: Mapped[RiskAssessmentModel] = relationship(back_populates="factors")
 
 
+class CaseModel(Base):
+    __tablename__ = "cases"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    case_number: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
+    verification_id: Mapped[UUID] = mapped_column(ForeignKey("verifications.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(180), nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    priority: Mapped[str] = mapped_column(String(16), nullable=False)
+    assigned_to: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    assigned_supervisor: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_by: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), index=True)
+    resolved_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    resolution: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    resolution_reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    verification: Mapped[VerificationModel] = relationship(back_populates="cases")
+    evidence: Mapped[list[CaseEvidenceModel]] = relationship(back_populates="case", cascade="all, delete-orphan")
+    notes: Mapped[list[CaseNoteModel]] = relationship(back_populates="case", cascade="all, delete-orphan")
+    decisions: Mapped[list[CaseDecisionModel]] = relationship(back_populates="case", cascade="all, delete-orphan")
+
+
+class CaseEvidenceModel(Base):
+    __tablename__ = "case_evidence"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    case_id: Mapped[UUID] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    evidence_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_id: Mapped[UUID] = mapped_column(nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(180), nullable=False)
+    summary: Mapped[str] = mapped_column(String, nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    created_by: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    case: Mapped[CaseModel] = relationship(back_populates="evidence")
+
+
+class CaseNoteModel(Base):
+    __tablename__ = "case_notes"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    case_id: Mapped[UUID] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    body: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    case: Mapped[CaseModel] = relationship(back_populates="notes")
+
+
+class CaseDecisionModel(Base):
+    __tablename__ = "case_decisions"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    case_id: Mapped[UUID] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    decision: Mapped[str] = mapped_column(String(16), nullable=False)
+    reason: Mapped[str] = mapped_column(String, nullable=False)
+    decided_by: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    case: Mapped[CaseModel] = relationship(back_populates="decisions")
+
+
 class AuditEventModel(Base):
     __tablename__ = "audit_events"
 
@@ -267,6 +334,7 @@ class AuditEventModel(Base):
     face_verification_id: Mapped[UUID | None] = mapped_column(ForeignKey("face_verifications.id", ondelete="SET NULL"), nullable=True, index=True)
     validation_id: Mapped[UUID | None] = mapped_column(ForeignKey("document_validations.id", ondelete="SET NULL"), nullable=True, index=True)
     risk_assessment_id: Mapped[UUID | None] = mapped_column(ForeignKey("risk_assessments.id", ondelete="SET NULL"), nullable=True, index=True)
+    case_id: Mapped[UUID | None] = mapped_column(ForeignKey("cases.id", ondelete="SET NULL"), nullable=True, index=True)
     provider: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)

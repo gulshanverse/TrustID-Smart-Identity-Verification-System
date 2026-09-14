@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from starlette.responses import Response
 
 from app.api.v1.auth import router as auth_router
+from app.api.v1.cases import router as cases_router
 from app.api.v1.console import router as console_router
 from app.api.v1.documents import documents_router
 from app.api.v1.documents import router as document_router
@@ -77,3 +78,4 @@ app.include_router(ocr_router, prefix="/api/v1")
 app.include_router(tampering_router, prefix="/api/v1")
 app.include_router(face_router, prefix="/api/v1")
 app.include_router(intelligence_router, prefix="/api/v1")
+app.include_router(cases_router, prefix="/api/v1")

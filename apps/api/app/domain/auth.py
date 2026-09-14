@@ -21,11 +21,14 @@ class Permission(StrEnum):
     DOCUMENT_CREATE = "document:create"
     DOCUMENT_READ = "document:read"
     DOCUMENT_DELETE = "document:delete"
+    CASE_ASSIGN = "case:assign"
+    CASE_DECIDE = "case:decide"
+    CASE_RESOLVE = "case:resolve"
 
 ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
     Role.ADMIN: frozenset(Permission),
-    Role.OFFICER: frozenset({Permission.CONSOLE_ACCESS, Permission.VERIFICATION_WORKFLOW, Permission.CASE_WORK, Permission.REPORTS, Permission.DOCUMENT_CREATE, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE}),
-    Role.SUPERVISOR: frozenset({Permission.CONSOLE_ACCESS, Permission.VERIFICATION_WORKFLOW, Permission.CASE_WORK, Permission.OVERSIGHT, Permission.ANALYTICS, Permission.AUDIT, Permission.REPORTS, Permission.DOCUMENT_CREATE, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE}),
+    Role.OFFICER: frozenset({Permission.CONSOLE_ACCESS, Permission.VERIFICATION_WORKFLOW, Permission.CASE_WORK, Permission.CASE_DECIDE, Permission.REPORTS, Permission.DOCUMENT_CREATE, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE}),
+    Role.SUPERVISOR: frozenset({Permission.CONSOLE_ACCESS, Permission.VERIFICATION_WORKFLOW, Permission.CASE_WORK, Permission.CASE_ASSIGN, Permission.CASE_DECIDE, Permission.CASE_RESOLVE, Permission.OVERSIGHT, Permission.ANALYTICS, Permission.AUDIT, Permission.REPORTS, Permission.DOCUMENT_CREATE, Permission.DOCUMENT_READ, Permission.DOCUMENT_DELETE}),
     Role.AUDITOR: frozenset({Permission.CONSOLE_ACCESS, Permission.AUDIT, Permission.REPORTS}),
 }
 

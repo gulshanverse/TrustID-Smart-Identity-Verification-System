@@ -1,7 +1,10 @@
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
+from app.db.models import Base
 from app.domain.documents import (
     MAX_DOCUMENT_SIZE_BYTES,
     DocumentType,
@@ -9,9 +12,23 @@ from app.domain.documents import (
     storage_key,
     validate_document_bytes,
 )
+from app.repositories.document_repository import SqlAlchemyDocumentRepository
 from app.services.document_service import DocumentService
 
 PDF = b"%PDF-1.7\nminimal"
+
+
+@pytest.fixture
+def db() -> Session:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
+    Base.metadata.drop_all(engine)
+
+
+def service(db: Session, storage: InMemoryObjectStorage | None = None) -> DocumentService:
+    return DocumentService(storage or InMemoryObjectStorage(), SqlAlchemyDocumentRepository(db))
 
 
 def test_validation_rejects_extension_spoofing_and_empty_files() -> None:
@@ -33,19 +50,51 @@ def test_storage_key_is_server_generated() -> None:
     assert key.endswith(".pdf")
 
 
-def test_authorized_upload_persists_metadata_and_audit_event() -> None:
+def test_metadata_relationship_and_audit_survive_service_recreation(db: Session) -> None:
     actor = uuid4()
-    service = DocumentService(InMemoryObjectStorage())
-    verification = service.create_verification(actor)
-    document = service.upload(verification.id, actor, "../../passport.pdf", "application/pdf", PDF, DocumentType.PASSPORT)
-    assert document.status.value == "READY_FOR_ANALYSIS"
-    assert document.original_filename == "passport.pdf"
-    assert document.verification_id == verification.id
-    assert service.audit_events[-1].event_type == "DOCUMENT_UPLOADED"
+    storage = InMemoryObjectStorage()
+    first = service(db, storage)
+    verification = first.create_verification(actor, "officer@example.test", "Officer")
+    document = first.upload(verification.id, actor, "../../passport.pdf", "application/pdf", PDF, DocumentType.PASSPORT)
+
+    recreated = service(db, storage)
+    assert recreated.ensure_access(verification.id, actor).id == verification.id
+    assert recreated.list_documents(verification.id, actor)[0].id == document.id
+    assert recreated.get_document(document.id, actor).verification_id == verification.id
+    assert [event.event_type for event in recreated.audit_events()] == ["VERIFICATION_CREATED", "DOCUMENT_UPLOADED"]
 
 
-def test_unauthorized_access_is_rejected() -> None:
-    service = DocumentService(InMemoryObjectStorage())
-    verification = service.create_verification(uuid4())
+def test_unauthorized_verification_and_document_access_is_rejected(db: Session) -> None:
+    actor = uuid4()
+    other = uuid4()
+    current = service(db)
+    verification = current.create_verification(actor, "officer@example.test", "Officer")
+    document = current.upload(verification.id, actor, "passport.pdf", "application/pdf", PDF, DocumentType.PASSPORT)
     with pytest.raises(LookupError):
-        service.upload(verification.id, uuid4(), "passport.pdf", "application/pdf", PDF, DocumentType.PASSPORT)
+        current.list_documents(verification.id, other)
+    with pytest.raises(LookupError):
+        current.get_document(document.id, other)
+    with pytest.raises(LookupError):
+        current.delete_document(document.id, other)
+
+
+class FailingCommitRepository(SqlAlchemyDocumentRepository):
+    def __init__(self, db: Session) -> None:
+        super().__init__(db)
+        self.fail_commit = False
+
+    def commit(self) -> None:
+        if self.fail_commit:
+            raise RuntimeError("database unavailable")
+        super().commit()
+
+
+def test_database_failure_cleans_up_object(db: Session) -> None:
+    storage = InMemoryObjectStorage()
+    repo = FailingCommitRepository(db)
+    current = DocumentService(storage, repo)
+    verification = current.create_verification(uuid4(), "officer@example.test", "Officer")
+    repo.fail_commit = True
+    with pytest.raises(RuntimeError, match="metadata"):
+        current.upload(verification.id, verification.owner_id, "passport.pdf", "application/pdf", PDF, DocumentType.PASSPORT)
+    assert storage.objects == {}

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from uuid import UUID, uuid4
+from typing import Protocol
+from uuid import UUID
 
 from app.domain.documents import (
     DocumentLifecycle,
@@ -13,6 +15,8 @@ from app.domain.documents import (
     storage_key,
     validate_document_bytes,
 )
+
+logger = logging.getLogger("trustid.documents")
 
 
 @dataclass(frozen=True)
@@ -32,22 +36,29 @@ class AuditEvent:
     created_at: str
 
 
-class DocumentService:
-    def __init__(self, storage: ObjectStorage) -> None:
-        self.storage = storage
-        self.verifications: dict[UUID, VerificationRecord] = {}
-        self.documents: dict[UUID, DocumentRecord] = {}
-        self.audit_events: list[AuditEvent] = []
+class DocumentRepository(Protocol):
+    def create_verification(self, owner_id: UUID, email: str, display_name: str) -> VerificationRecord: ...
+    def get_verification_for_owner(self, verification_id: UUID, owner_id: UUID) -> VerificationRecord | None: ...
+    def add_document(self, record: DocumentRecord, actor_id: UUID) -> None: ...
+    def list_documents(self, verification_id: UUID) -> list[DocumentRecord]: ...
+    def get_document_for_owner(self, document_id: UUID, owner_id: UUID) -> DocumentRecord | None: ...
+    def delete_document(self, document_id: UUID, actor_id: UUID) -> None: ...
+    def list_audit_events(self) -> list[AuditEvent]: ...
+    def commit(self) -> None: ...
+    def rollback(self) -> None: ...
 
-    def create_verification(self, actor_id: UUID) -> VerificationRecord:
-        record = VerificationRecord(uuid4(), actor_id, datetime.now(UTC).isoformat())
-        self.verifications[record.id] = record
-        self.audit_events.append(AuditEvent("VERIFICATION_CREATED", actor_id, record.id, None, "CREATED", record.created_at))
-        return record
+
+class DocumentService:
+    def __init__(self, storage: ObjectStorage, repository: DocumentRepository) -> None:
+        self.storage = storage
+        self.repository = repository
+
+    def create_verification(self, actor_id: UUID, email: str, display_name: str) -> VerificationRecord:
+        return self.repository.create_verification(actor_id, email, display_name)
 
     def ensure_access(self, verification_id: UUID, actor_id: UUID) -> VerificationRecord:
-        record = self.verifications.get(verification_id)
-        if record is None or record.owner_id != actor_id:
+        record = self.repository.get_verification_for_owner(verification_id, actor_id)
+        if record is None:
             raise LookupError("Verification not found.")
         return record
 
@@ -60,27 +71,36 @@ class DocumentService:
         now = datetime.now(UTC).isoformat()
         record = DocumentRecord(document_id, verification_id, document_type, display_name, stored.key, actual_mime, stored.size, stored.checksum, DocumentLifecycle.READY_FOR_ANALYSIS, now, now)
         try:
-            self.documents[document_id] = record
-        except RuntimeError:
-            self.storage.delete(key)
-            raise RuntimeError("Document metadata could not be saved.")
-        self.audit_events.append(AuditEvent("DOCUMENT_UPLOADED", actor_id, verification_id, document_id, record.status.value, now))
+            self.repository.add_document(record, actor_id)
+            self.repository.commit()
+        except Exception as exc:
+            self.repository.rollback()
+            try:
+                self.storage.delete(key)
+            except Exception:  # noqa: BLE001
+                logger.warning("document_storage_cleanup_failed")
+            raise RuntimeError("Document metadata could not be saved.") from exc
         return record
 
     def list_documents(self, verification_id: UUID, actor_id: UUID) -> list[DocumentRecord]:
         self.ensure_access(verification_id, actor_id)
-        return [document for document in self.documents.values() if document.verification_id == verification_id and document.status != DocumentLifecycle.DELETED]
+        return self.repository.list_documents(verification_id)
 
     def get_document(self, document_id: UUID, actor_id: UUID) -> DocumentRecord:
-        record = self.documents.get(document_id)
-        if record is None or record.status == DocumentLifecycle.DELETED:
+        record = self.repository.get_document_for_owner(document_id, actor_id)
+        if record is None:
             raise LookupError("Document not found.")
-        self.ensure_access(record.verification_id, actor_id)
         return record
 
     def delete_document(self, document_id: UUID, actor_id: UUID) -> None:
         record = self.get_document(document_id, actor_id)
         self.storage.delete(record.storage_key)
-        now = datetime.now(UTC).isoformat()
-        self.documents[document_id] = DocumentRecord(**{**record.__dict__, "status": DocumentLifecycle.DELETED, "updated_at": now})
-        self.audit_events.append(AuditEvent("DOCUMENT_DELETED", actor_id, record.verification_id, document_id, "DELETED", now))
+        try:
+            self.repository.delete_document(document_id, actor_id)
+            self.repository.commit()
+        except Exception as exc:
+            self.repository.rollback()
+            raise RuntimeError("Document metadata could not be deleted.") from exc
+
+    def audit_events(self) -> list[AuditEvent]:
+        return self.repository.list_audit_events()

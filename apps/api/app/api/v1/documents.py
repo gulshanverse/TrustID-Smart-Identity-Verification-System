@@ -4,20 +4,23 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_permission
 from app.api.document_schemas import DocumentResponse, VerificationResponse
+from app.db.session import get_db
 from app.domain.auth import Permission
 from app.domain.documents import DocumentRecord, DocumentType
+from app.repositories.document_repository import SqlAlchemyDocumentRepository
 from app.services.auth_service import AuthUser
 from app.services.document_service import DocumentService
 
 router = APIRouter(prefix="/verifications", tags=["documents"])
 
 
-def get_document_service() -> DocumentService:
-    from app.main import document_service
-    return document_service
+def get_document_service(db: Session = Depends(get_db)) -> DocumentService:
+    from app.main import storage
+    return DocumentService(storage, SqlAlchemyDocumentRepository(db))
 
 
 def to_response(record: DocumentRecord) -> DocumentResponse:
@@ -31,7 +34,7 @@ def to_response(record: DocumentRecord) -> DocumentResponse:
 
 @router.post("", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED)
 def create_verification(user: AuthUser = Depends(require_permission(Permission.VERIFICATION_WORKFLOW)), service: DocumentService = Depends(get_document_service)) -> VerificationResponse:
-    record = service.create_verification(user.id)
+    record = service.create_verification(user.id, user.email, user.display_name)
     return VerificationResponse(id=record.id, created_at=datetime.fromisoformat(record.created_at))
 
 

@@ -8,7 +8,7 @@ The supported document types are Passport, Visa, National ID, Driving License, a
 
 ## Architecture and storage
 
-The request path is frontend → versioned API → `DocumentService` → `ObjectStorage` interface → MinIO/S3-compatible adapter. The S3 adapter receives credentials only from API configuration and stores objects in the configured private bucket. Database metadata is represented by `verifications`, `documents`, and `audit_events` tables; document binary content is not stored in PostgreSQL. Tests use an in-memory storage fake with the same put/delete contract. If the S3 client or storage configuration is unavailable, the API returns a safe storage-unavailable error and does not claim success.
+The request path is frontend → versioned API → `DocumentService` → SQLAlchemy repository → PostgreSQL, with a separate `ObjectStorage` interface → MinIO/S3-compatible adapter for binary content. The S3 adapter receives credentials only from API configuration and stores objects in the configured private bucket. Database metadata is represented by `verifications`, `documents`, and `audit_events` tables; document binary content is not stored in PostgreSQL. Tests use an in-memory storage fake only for isolated storage behavior, while persistence tests exercise the repository against SQLite. If the S3 client or storage configuration is unavailable, the API returns a safe storage-unavailable error and does not claim success.
 
 Start local infrastructure with `docker compose up -d postgres redis minio`. Configure the API using `.env` or the documented defaults, ensure the private `trustid-documents` bucket exists, and run `alembic upgrade head` from `apps/api`. The repository does not publish uploaded objects or return storage credentials or internal object keys to the browser.
 
@@ -34,4 +34,4 @@ OCR, field extraction, quality scoring, tampering detection, face processing, ri
 
 ## Known limitations
 
-The current authentication service and document metadata service preserve the repository's development-stage in-process service boundary. The SQLAlchemy models and Alembic migration establish the persistent schema for the next repository integration. Actual object storage requires the configured MinIO/S3-compatible service; without it, tests should use the fake adapter and local API calls should show the storage-unavailable message rather than simulating a successful upload.
+The authentication service remains the repository's development-stage in-process session boundary. Document verification and metadata persistence use the existing SQLAlchemy session infrastructure in production. Actual object storage requires the configured MinIO/S3-compatible service; without it, tests should use the fake adapter and local API calls should show the storage-unavailable message rather than simulating a successful upload.

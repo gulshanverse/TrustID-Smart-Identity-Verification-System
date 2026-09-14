@@ -14,7 +14,6 @@ from app.api.v1.documents import router as document_router
 from app.api.v1.health import router as health_router
 from app.core.config import get_settings
 from app.domain.documents import ObjectStorage, S3ObjectStorage, StoredObject
-from app.services.document_service import DocumentService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("trustid.api")
@@ -34,14 +33,13 @@ try:
     storage = S3ObjectStorage(settings.object_storage_endpoint, settings.object_storage_bucket, settings.object_storage_access_key, settings.object_storage_secret_key)
 except (ImportError, RuntimeError):
     storage = UnavailableStorage()
-document_service = DocumentService(storage)
 
 app = FastAPI(title=settings.app_name, version="0.1.0", docs_url="/docs", redoc_url="/redoc")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

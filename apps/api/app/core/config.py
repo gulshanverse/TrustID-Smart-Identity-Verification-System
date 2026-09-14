@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     object_storage_access_key: str = "minioadmin"
     object_storage_secret_key: str = "minioadmin"
     ocr_provider: str = "demo"
+    tampering_provider: str = "demo"
     cors_origins: str = "http://localhost:3000"
     demo_password: str | None = None
     session_cookie_name: str = "trustid_session"

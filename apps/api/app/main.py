@@ -13,6 +13,7 @@ from app.api.v1.documents import documents_router
 from app.api.v1.documents import router as document_router
 from app.api.v1.health import router as health_router
 from app.api.v1.ocr import router as ocr_router
+from app.api.v1.tampering import router as tampering_router
 from app.core.config import get_settings
 from app.domain.documents import ObjectStorage, S3ObjectStorage, StoredObject
 
@@ -71,3 +72,4 @@ app.include_router(console_router, prefix="/api/v1")
 app.include_router(document_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(ocr_router, prefix="/api/v1")
+app.include_router(tampering_router, prefix="/api/v1")

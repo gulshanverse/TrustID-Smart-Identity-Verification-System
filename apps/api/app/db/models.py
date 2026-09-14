@@ -63,6 +63,7 @@ class DocumentModel(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     verification: Mapped[VerificationModel] = relationship(back_populates="documents")
     ocr_results: Mapped[list[OCRResultModel]] = relationship(back_populates="document", cascade="all, delete-orphan")
+    tampering_results: Mapped[list[TamperingResultModel]] = relationship(back_populates="document", cascade="all, delete-orphan")
 
 
 class OCRResultModel(Base):
@@ -109,6 +110,53 @@ class OCREvidenceModel(Base):
     field: Mapped[OCRFieldModel] = relationship(back_populates="evidence")
 
 
+class TamperingResultModel(Base):
+    __tablename__ = "tampering_results"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    document_id: Mapped[UUID] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    technical_signal_score: Mapped[float] = mapped_column(nullable=False)
+    overall_confidence: Mapped[float] = mapped_column(nullable=False)
+    provider: Mapped[str] = mapped_column(String(128), nullable=False)
+    provider_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    summary: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    document: Mapped[DocumentModel] = relationship(back_populates="tampering_results")
+    findings: Mapped[list[TamperingFindingModel]] = relationship(back_populates="result", cascade="all, delete-orphan")
+
+
+class TamperingFindingModel(Base):
+    __tablename__ = "tampering_findings"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tampering_result_id: Mapped[UUID] = mapped_column(ForeignKey("tampering_results.id", ondelete="CASCADE"), index=True)
+    finding_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    confidence: Mapped[float] = mapped_column(nullable=False)
+    title: Mapped[str] = mapped_column(String(240), nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    related_ocr_field: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    result: Mapped[TamperingResultModel] = relationship(back_populates="findings")
+    evidence: Mapped[list[TamperingEvidenceModel]] = relationship(back_populates="finding", cascade="all, delete-orphan")
+
+
+class TamperingEvidenceModel(Base):
+    __tablename__ = "tampering_evidence"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tampering_finding_id: Mapped[UUID] = mapped_column(ForeignKey("tampering_findings.id", ondelete="CASCADE"), index=True)
+    evidence_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    page: Mapped[int | None] = mapped_column(nullable=True)
+    region: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    source_reference: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    technical_signal: Mapped[str] = mapped_column(String(160), nullable=False)
+    confidence: Mapped[float] = mapped_column(nullable=False)
+    finding: Mapped[TamperingFindingModel] = relationship(back_populates="evidence")
+
+
 class AuditEventModel(Base):
     __tablename__ = "audit_events"
 
@@ -118,6 +166,7 @@ class AuditEventModel(Base):
     verification_id: Mapped[UUID] = mapped_column(ForeignKey("verifications.id", ondelete="RESTRICT"), index=True)
     document_id: Mapped[UUID | None] = mapped_column(ForeignKey("documents.id", ondelete="RESTRICT"), nullable=True, index=True)
     ocr_result_id: Mapped[UUID | None] = mapped_column(ForeignKey("ocr_results.id", ondelete="SET NULL"), nullable=True, index=True)
+    tampering_result_id: Mapped[UUID | None] = mapped_column(ForeignKey("tampering_results.id", ondelete="SET NULL"), nullable=True, index=True)
     provider: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)

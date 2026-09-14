@@ -146,3 +146,18 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { color: var(--primary-strong); lett
 .ocr-raw summary { cursor: pointer; font-size: 12px; font-weight: 700; }
 .ocr-raw pre { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: 12px; max-width: 100%; overflow-x: auto; padding: 12px; white-space: pre-wrap; }
 @media (max-width: 680px) { .ocr-summary, .ocr-fields { grid-template-columns: 1fr; } }
+.scenario-label { color: var(--text-secondary); display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; }
+.scenario-select { background: #fff; border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font: inherit; max-width: 360px; padding: 10px 12px; width: 100%; }
+.tampering-result { margin-top: 16px; }
+.tampering-summary { background: #f8fafc; border-left: 3px solid var(--primary); margin: 14px 0; padding: 11px 13px; }
+.tampering-findings { display: grid; gap: 12px; }
+.tampering-finding { border: 1px solid var(--border); border-radius: 9px; padding: 14px; }
+.tampering-finding h4 { color: var(--primary-strong); margin: 0 0 7px; }
+.tampering-finding h5 { font-size: 12px; margin: 14px 0 7px; }
+.tampering-finding p { color: var(--text-secondary); font-size: 13px; line-height: 1.55; margin: 7px 0; }
+.evidence-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 7px; margin-top: 7px; padding: 9px; }
+.evidence-item span, .evidence-item small { display: block; }
+.evidence-item span { color: var(--primary-strong); font-size: 12px; font-weight: 700; }
+.evidence-item small { color: var(--text-muted); font-size: 11px; line-height: 1.5; margin-top: 3px; }
+.clean-finding { color: var(--text-secondary); font-weight: 700; }
+@media (max-width: 680px) { .scenario-select { max-width: none; } }

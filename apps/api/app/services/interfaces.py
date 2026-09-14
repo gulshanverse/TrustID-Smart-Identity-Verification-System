@@ -1,10 +1,12 @@
 from typing import Protocol
 
 from app.domain.contracts import FaceResult
+from app.domain.documents import DocumentRecord
+from app.domain.ocr import OCRField
 
 
 class OCRService(Protocol):
-    def extract(self, document_id: str) -> dict[str, object]: ...
+    def process(self, document: DocumentRecord, content: bytes) -> tuple[str, tuple[OCRField, ...], float, str]: ...
 
 
 class DocumentValidationService(Protocol):

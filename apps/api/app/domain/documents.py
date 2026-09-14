@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from io import BytesIO
 from pathlib import PurePath
+from typing import cast
 from uuid import UUID, uuid4
 
 MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024
@@ -19,6 +20,7 @@ class DocumentType(StrEnum):
 
 class DocumentLifecycle(StrEnum):
     READY_FOR_ANALYSIS = "READY_FOR_ANALYSIS"
+    OCR_COMPLETE = "OCR_COMPLETE"
     FAILED = "FAILED"
     DELETED = "DELETED"
 
@@ -100,6 +102,9 @@ class ObjectStorage:
     def delete(self, key: str) -> None:
         raise NotImplementedError
 
+    def get(self, key: str) -> bytes:
+        raise NotImplementedError
+
 
 class S3ObjectStorage(ObjectStorage):
     """MinIO/S3-compatible storage adapter; credentials never leave the API."""
@@ -121,6 +126,10 @@ class S3ObjectStorage(ObjectStorage):
     def delete(self, key: str) -> None:
         self.client.delete_object(Bucket=self.bucket, Key=key)
 
+    def get(self, key: str) -> bytes:
+        response = self.client.get_object(Bucket=self.bucket, Key=key)
+        return cast(bytes, response["Body"].read())
+
 
 class InMemoryObjectStorage(ObjectStorage):
     """Test-only fake that preserves real put/delete semantics without public files."""
@@ -135,6 +144,11 @@ class InMemoryObjectStorage(ObjectStorage):
 
     def delete(self, key: str) -> None:
         self.objects.pop(key, None)
+
+    def get(self, key: str) -> bytes:
+        if key not in self.objects:
+            raise FileNotFoundError("Stored document not found.")
+        return self.objects[key]
 
 
 def new_document_id() -> UUID:

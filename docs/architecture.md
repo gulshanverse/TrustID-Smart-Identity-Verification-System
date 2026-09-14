@@ -8,7 +8,7 @@ TrustID is being developed as a modular monolith with a Next.js frontend, a Fast
 
 ## Backend
 
-`apps/api` contains the FastAPI modular monolith. Routes live in the API layer, domain contracts define stable concepts, services expose provider-neutral interfaces, repositories own data access, and database sessions are isolated in `app/db`. Authentication routes delegate to an auth service, session and permission dependencies enforce boundaries, and auth models are represented in Alembic migrations. Phase 5 adds a document-ingestion service, a SQLAlchemy repository backed by PostgreSQL metadata tables, a private S3-compatible storage boundary, verification/document metadata models, audit events, and RBAC-protected versioned endpoints. OCR and analysis remain deferred. The `/api/v1/health` route remains unchanged.
+`apps/api` contains the FastAPI modular monolith. Routes live in the API layer, domain contracts define stable concepts, services expose provider-neutral interfaces, repositories own data access, and database sessions are isolated in `app/db`. Authentication routes delegate to an auth service, session and permission dependencies enforce boundaries, and auth models are represented in Alembic migrations. Phase 5 adds document ingestion with PostgreSQL metadata and private S3-compatible storage. Phase 6 adds an OCR orchestrator, typed provider-neutral demo adapter, private object retrieval, PostgreSQL OCR result/field/evidence persistence, audit events, and RBAC-protected versioned endpoints. Validation and later analysis remain deferred. The `/api/v1/health` route remains unchanged.
 
 ## Data and infrastructure
 

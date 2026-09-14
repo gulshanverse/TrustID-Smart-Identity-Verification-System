@@ -4,7 +4,7 @@ TrustID is an AI-assisted identity and document screening platform for Smart Ind
 
 ## Project status
 
-**PHASE 5 COMPLETE — secure document ingestion foundation.** The repository contains the Phase 0 engineering foundation, Phase 1 design system, Phase 2 public website, Phase 2.1 navigation/metadata polish, Phase 3 protected console/authentication foundation, Phase 4 operational dashboard, and Phase 5 secure document upload. Dashboard metrics remain fictional/demo display data; uploaded documents use real validation and configured private object storage. OCR, AI providers, risk calculation, and production business records remain deferred.
+**PHASE 6 COMPLETE — OCR and structured document extraction foundation.** The repository contains secure Phase 5 document ingestion plus provider-neutral, demo-labeled OCR, structured fields, confidence, evidence, PostgreSQL persistence, and authorized OCR results. Dashboard metrics remain fictional/demo display data; OCR is extraction only and does not determine authenticity. Tampering, face, risk, government, and production AI integrations remain deferred.
 
 ## Authoritative source of truth
 
@@ -30,7 +30,7 @@ PostgreSQL · Redis · MinIO
 packages/shared (cross-layer domain contracts)
 ```
 
-The API exposes `GET /api/v1/health`, the Phase 3 authentication boundary, and Phase 5 verification/document endpoints. Provider-neutral protocols exist for OCR, document validation, tampering detection, face verification, and risk assessment, but no provider or fake result is connected. See [`docs/document-upload.md`](./docs/document-upload.md).
+The API exposes `GET /api/v1/health`, the Phase 3 authentication boundary, Phase 5 verification/document endpoints, and Phase 6 OCR execution/result endpoints. See [`docs/document-upload.md`](./docs/document-upload.md) and [`docs/ocr.md`](./docs/ocr.md).
 
 ## Repository structure
 
@@ -79,6 +79,6 @@ Check `http://localhost:8000/api/v1/health`. Backend quality commands are `.venv
 
 ## Scope boundaries
 
-Phase 5 implements document ingestion only. OCR, tampering detection, face verification, risk calculation, verification orchestration, cases functionality, analytics calculations, reports generation, blockchain, government database integration, and production AI providers remain deferred. Console dashboard metrics and records are fictional display data; upload success is never simulated when storage is unavailable.
+Phase 6 implements OCR extraction only. Tampering detection, face verification, risk calculation, verification orchestration, cases functionality, analytics calculations, reports generation, blockchain, government database integration, production AI providers, automatic fraud classification, and officer decision automation remain deferred. Console dashboard metrics and records are fictional display data; upload/OCR success is never simulated when storage or the configured provider is unavailable.
 
 See [`docs/architecture.md`](./docs/architecture.md), [`docs/authentication.md`](./docs/authentication.md), [`docs/dashboard.md`](./docs/dashboard.md), [`docs/design-system.md`](./docs/design-system.md), [`docs/public-website.md`](./docs/public-website.md), and [`docs/development.md`](./docs/development.md) for implementation boundaries and workflows.

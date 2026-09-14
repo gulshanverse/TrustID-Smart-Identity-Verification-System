@@ -12,6 +12,7 @@ from app.api.v1.console import router as console_router
 from app.api.v1.documents import documents_router
 from app.api.v1.documents import router as document_router
 from app.api.v1.health import router as health_router
+from app.api.v1.ocr import router as ocr_router
 from app.core.config import get_settings
 from app.domain.documents import ObjectStorage, S3ObjectStorage, StoredObject
 
@@ -26,6 +27,9 @@ class UnavailableStorage(ObjectStorage):
 
     def delete(self, key: str) -> None:
         return None
+
+    def get(self, key: str) -> bytes:
+        raise RuntimeError("Document storage is not configured in this environment.")
 
 
 storage: ObjectStorage
@@ -66,3 +70,4 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(console_router, prefix="/api/v1")
 app.include_router(document_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
+app.include_router(ocr_router, prefix="/api/v1")

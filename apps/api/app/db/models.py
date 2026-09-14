@@ -62,6 +62,51 @@ class DocumentModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     verification: Mapped[VerificationModel] = relationship(back_populates="documents")
+    ocr_results: Mapped[list[OCRResultModel]] = relationship(back_populates="document", cascade="all, delete-orphan")
+
+
+class OCRResultModel(Base):
+    __tablename__ = "ocr_results"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    document_id: Mapped[UUID] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    raw_text: Mapped[str] = mapped_column(String, nullable=False)
+    language: Mapped[str] = mapped_column(String(32), nullable=False)
+    overall_confidence: Mapped[float] = mapped_column(nullable=False)
+    provider: Mapped[str] = mapped_column(String(128), nullable=False)
+    provider_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    document: Mapped[DocumentModel] = relationship(back_populates="ocr_results")
+    fields: Mapped[list[OCRFieldModel]] = relationship(back_populates="result", cascade="all, delete-orphan")
+
+
+class OCRFieldModel(Base):
+    __tablename__ = "ocr_fields"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    ocr_result_id: Mapped[UUID] = mapped_column(ForeignKey("ocr_results.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    value: Mapped[str] = mapped_column(String, nullable=False)
+    normalized_value: Mapped[str] = mapped_column(String, nullable=False)
+    confidence: Mapped[float] = mapped_column(nullable=False)
+    source_text: Mapped[str] = mapped_column(String, nullable=False)
+    result: Mapped[OCRResultModel] = relationship(back_populates="fields")
+    evidence: Mapped[list[OCREvidenceModel]] = relationship(back_populates="field", cascade="all, delete-orphan")
+
+
+class OCREvidenceModel(Base):
+    __tablename__ = "ocr_evidence"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    ocr_field_id: Mapped[UUID] = mapped_column(ForeignKey("ocr_fields.id", ondelete="CASCADE"), index=True)
+    page: Mapped[int | None] = mapped_column(nullable=True)
+    text: Mapped[str | None] = mapped_column(String, nullable=True)
+    start_offset: Mapped[int | None] = mapped_column(nullable=True)
+    end_offset: Mapped[int | None] = mapped_column(nullable=True)
+    line_index: Mapped[int | None] = mapped_column(nullable=True)
+    field: Mapped[OCRFieldModel] = relationship(back_populates="evidence")
 
 
 class AuditEventModel(Base):
@@ -72,5 +117,7 @@ class AuditEventModel(Base):
     actor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), index=True)
     verification_id: Mapped[UUID] = mapped_column(ForeignKey("verifications.id", ondelete="RESTRICT"), index=True)
     document_id: Mapped[UUID | None] = mapped_column(ForeignKey("documents.id", ondelete="RESTRICT"), nullable=True, index=True)
+    ocr_result_id: Mapped[UUID | None] = mapped_column(ForeignKey("ocr_results.id", ondelete="SET NULL"), nullable=True, index=True)
+    provider: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)

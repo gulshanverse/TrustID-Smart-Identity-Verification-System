@@ -1,8 +1,6 @@
-import { Activity, ArrowRight, ClipboardCheck, FileClock, ShieldCheck } from "lucide-react";
-import { Card, CardHeader } from "@/components/ui";
+import { OperationalDashboard } from "@/components/dashboard";
 import { ConsoleActionLink, ConsolePage } from "@/components/console-page";
-import { DemoModeBadge } from "@/components/status";
 
 export default function DashboardPage() {
-  return <ConsolePage title="Operations Dashboard" description="A secure operational shell for authorized TrustID personnel. Business workflows will be connected in later phases." action={<ConsoleActionLink href="/console/verify">New Verification</ConsoleActionLink>}><div className="console-demo-banner"><DemoModeBadge /><span>Structural preview only · no production metrics or verification records are shown.</span></div><div className="dashboard-placeholder-grid"><Card><CardHeader title="Verification Activity" action={<Activity size={18} />} /><p>Verification activity will appear here when the workflow is enabled.</p></Card><Card><CardHeader title="Pending Review" action={<ClipboardCheck size={18} />} /><p>Pending review records are not available in this phase.</p></Card><Card><CardHeader title="Recent Cases" action={<FileClock size={18} />} /><p>Case management is not enabled in this phase.</p></Card><Card><CardHeader title="System Status" action={<ShieldCheck size={18} />} /><p>Connect the API health endpoint before displaying operational health.</p></Card></div><div className="console-next-step"><strong>Next step</strong><span>Start with the protected verification entry shell.</span><a href="/console/verify">Open New Verification <ArrowRight size={15} /></a></div></ConsolePage>;
+  return <ConsolePage title="Operations Dashboard" description="Monitor screening activity, review workload, verification outcomes, and system readiness." action={<ConsoleActionLink href="/console/verify">New Verification</ConsoleActionLink>}><OperationalDashboard /></ConsolePage>;
 }

@@ -4,7 +4,7 @@ TrustID is being developed as a modular monolith with a Next.js frontend, a Fast
 
 ## Frontend
 
-`apps/web` contains the Next.js App Router shell, global institutional styling, public marketing routes, a centralized `AuthProvider`, protected console pages, and feature-oriented locations for future work. The browser must call TrustID API routes rather than AI providers directly. Future feature modules belong under `apps/web/src/features` and should keep UI, data access, and presentation concerns local to each capability.
+`apps/web` contains the Next.js App Router shell, global institutional styling, public marketing routes, a centralized `AuthProvider`, protected console pages, and feature-oriented locations for future work. Phase 4 adds a deterministic typed dashboard data seam at `apps/web/src/lib/dashboard-data.ts`; it is display-only demo data and is designed to be replaced by an authorized dashboard API provider later. The browser must call TrustID API routes rather than AI providers directly. Future feature modules belong under `apps/web/src/features` and should keep UI, data access, and presentation concerns local to each capability.
 
 ## Backend
 
@@ -24,4 +24,4 @@ The intended boundary is frontend → verification API → orchestrator → prov
 
 ## Future integrations
 
-Document processing, cases, reports, analytics, government data providers, and optional blockchain anchoring remain deferred. Authentication and RBAC are now foundations only: local demo sessions use an in-process service until a shared persistent repository and production hardening are added. Any future integration must preserve the evidence-first decision-support model and clearly distinguish demo or simulated behavior.
+Document processing, cases, reports, production analytics, government data providers, and optional blockchain anchoring remain deferred. The Phase 4 dashboard uses fictional records and deterministic trend data only; it does not create verification persistence or claim live operational health. Authentication and RBAC are now foundations only: local demo sessions use an in-process service until a shared persistent repository and production hardening are added. Any future integration must preserve the evidence-first decision-support model and clearly distinguish demo or simulated behavior.

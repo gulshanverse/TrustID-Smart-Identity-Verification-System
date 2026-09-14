@@ -4,7 +4,7 @@ TrustID is an AI-assisted identity and document screening platform for Smart Ind
 
 ## Project status
 
-**PHASE 3 FOUNDATION COMPLETE — secure console and authentication.** The repository contains the Phase 0 engineering foundation, Phase 1 design system, Phase 2 public website, Phase 2.1 navigation/metadata polish, and a protected console/authentication foundation. Authentication uses secure password hashing, HttpOnly cookie sessions, explicit roles and permissions, protected API dependencies, and clearly labeled demo-only placeholders. Document workflows, AI providers, and business records remain deferred.
+**PHASE 4 COMPLETE — operational dashboard and demo intelligence.** The repository contains the Phase 0 engineering foundation, Phase 1 design system, Phase 2 public website, Phase 2.1 navigation/metadata polish, Phase 3 protected console/authentication foundation, and a deterministic role-aware operational dashboard. Dashboard metrics and records are explicitly fictional/demo display data. Document workflows, AI providers, risk calculation, and production business records remain deferred.
 
 ## Authoritative source of truth
 
@@ -81,4 +81,4 @@ Check `http://localhost:8000/api/v1/health`. Backend quality commands are `.venv
 
 Phase 3 does not implement document upload, OCR, tampering detection, face verification, risk calculation, verification orchestration, cases functionality, analytics calculations, reports generation, blockchain, government database integration, or production AI providers. Console pages use professional empty states rather than fabricated records or metrics.
 
-See [`docs/architecture.md`](./docs/architecture.md), [`docs/authentication.md`](./docs/authentication.md), [`docs/design-system.md`](./docs/design-system.md), [`docs/public-website.md`](./docs/public-website.md), and [`docs/development.md`](./docs/development.md) for implementation boundaries and workflows.
+See [`docs/architecture.md`](./docs/architecture.md), [`docs/authentication.md`](./docs/authentication.md), [`docs/dashboard.md`](./docs/dashboard.md), [`docs/design-system.md`](./docs/design-system.md), [`docs/public-website.md`](./docs/public-website.md), and [`docs/development.md`](./docs/development.md) for implementation boundaries and workflows.

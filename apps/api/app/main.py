@@ -9,12 +9,32 @@ from starlette.responses import Response
 
 from app.api.v1.auth import router as auth_router
 from app.api.v1.console import router as console_router
+from app.api.v1.documents import documents_router
+from app.api.v1.documents import router as document_router
 from app.api.v1.health import router as health_router
 from app.core.config import get_settings
+from app.domain.documents import ObjectStorage, S3ObjectStorage, StoredObject
+from app.services.document_service import DocumentService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("trustid.api")
 settings = get_settings()
+
+
+class UnavailableStorage(ObjectStorage):
+    def put(self, key: str, content: bytes, mime_type: str) -> StoredObject:
+        raise RuntimeError("Document storage is not configured in this environment.")
+
+    def delete(self, key: str) -> None:
+        return None
+
+
+storage: ObjectStorage
+try:
+    storage = S3ObjectStorage(settings.object_storage_endpoint, settings.object_storage_bucket, settings.object_storage_access_key, settings.object_storage_secret_key)
+except (ImportError, RuntimeError):
+    storage = UnavailableStorage()
+document_service = DocumentService(storage)
 
 app = FastAPI(title=settings.app_name, version="0.1.0", docs_url="/docs", redoc_url="/redoc")
 app.add_middleware(
@@ -46,3 +66,5 @@ async def request_context(
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(console_router, prefix="/api/v1")
+app.include_router(document_router, prefix="/api/v1")
+app.include_router(documents_router, prefix="/api/v1")

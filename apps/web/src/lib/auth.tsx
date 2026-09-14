@@ -6,7 +6,7 @@ export type Role = "ADMIN" | "OFFICER" | "SUPERVISOR" | "AUDITOR";
 export interface AuthUser { id: string; email: string; display_name: string; roles: Role[]; permissions: string[]; is_active: boolean; }
 interface AuthContextValue { user: AuthUser | null; loading: boolean; error: string | null; signIn: (identifier: string, password: string) => Promise<boolean>; signOut: () => Promise<void>; refresh: () => Promise<void>; }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function readResponse(response: Response): Promise<{ user?: AuthUser; detail?: string }> {

@@ -5,7 +5,7 @@ import { ArrowRight, BriefcaseBusiness, Search } from "lucide-react";
 import { Card } from "@/components/ui";
 import { ConsolePage } from "@/components/console-page";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 type CaseItem = { id: string; case_number: string; title: string; status: string; priority: string; verification_id: string; updated_at: string };
 
 export default function CasesPage() {

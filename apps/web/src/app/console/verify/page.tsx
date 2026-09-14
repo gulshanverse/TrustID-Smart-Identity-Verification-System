@@ -5,7 +5,7 @@ import { CheckCircle2, FileText, IdCard, Plane, ScanLine, UploadCloud, X } from 
 import { Card } from "@/components/ui";
 import { ConsolePage } from "@/components/console-page";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024;
 const documentTypes = [["PASSPORT", "Passport", Plane], ["VISA", "Visa", FileText], ["NATIONAL_ID", "National ID", IdCard], ["DRIVING_LICENSE", "Driving License", IdCard], ["PERMIT", "Permit", FileText]] as const;
 const accepted = new Map([[".pdf", "application/pdf"], [".jpg", "image/jpeg"], [".jpeg", "image/jpeg"], [".png", "image/png"], [".webp", "image/webp"]]);

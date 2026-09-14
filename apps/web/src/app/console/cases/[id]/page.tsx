@@ -6,7 +6,7 @@ import { Activity, FileSearch, MessageSquare, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui";
 import { ConsolePage } from "@/components/console-page";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 type Detail = { case: { id: string; case_number: string; title: string; description: string; status: string; priority: string; verification_id: string; updated_at: string; }; evidence: { id: string; title: string; source_type: string; summary: string; severity: string; created_at: string }[]; notes: { id: string; author_id: string; body: string; created_at: string }[]; timeline: { id: string; event_type: string; actor_id: string; status: string; created_at: string }[] };
 
 export default function CaseDetailPage() {

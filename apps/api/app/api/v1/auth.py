@@ -20,7 +20,7 @@ def login(payload: LoginRequest, response: Response, service: AuthService = Depe
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
     token = service.create_session(user)
     settings = get_settings()
-    response.set_cookie(settings.session_cookie_name, token, httponly=True, secure=settings.session_cookie_secure, samesite="lax", max_age=settings.session_cookie_max_age)
+    response.set_cookie(settings.session_cookie_name, token, httponly=True, secure=settings.session_cookie_secure, samesite=settings.session_cookie_samesite, max_age=settings.session_cookie_max_age, path="/")
     logger.info("login_success", extra={"user_id": str(user.id)})
     return LoginResponse(user=service.to_safe_user(user))
 

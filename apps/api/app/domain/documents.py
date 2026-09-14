@@ -109,13 +109,13 @@ class ObjectStorage:
 class S3ObjectStorage(ObjectStorage):
     """MinIO/S3-compatible storage adapter; credentials never leave the API."""
 
-    def __init__(self, endpoint: str, bucket: str, access_key: str, secret_key: str) -> None:
+    def __init__(self, endpoint: str, bucket: str, access_key: str, secret_key: str, region: str = "us-east-1") -> None:
         self.bucket = bucket
         try:
             import boto3
         except ImportError as exc:  # pragma: no cover - deployment dependency
             raise RuntimeError("Object storage client is not installed.") from exc
-        self.client = boto3.client("s3", endpoint_url=endpoint, aws_access_key_id=access_key, aws_secret_access_key=secret_key)
+        self.client = boto3.client("s3", endpoint_url=endpoint, region_name=region, aws_access_key_id=access_key, aws_secret_access_key=secret_key)
 
     def put(self, key: str, content: bytes, mime_type: str) -> StoredObject:
         import hashlib

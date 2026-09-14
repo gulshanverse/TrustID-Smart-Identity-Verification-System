@@ -41,7 +41,7 @@ class UnavailableStorage(ObjectStorage):
 
 storage: ObjectStorage
 try:
-    storage = S3ObjectStorage(settings.object_storage_endpoint, settings.object_storage_bucket, settings.object_storage_access_key, settings.object_storage_secret_key)
+    storage = S3ObjectStorage(settings.object_storage_endpoint, settings.object_storage_bucket, settings.object_storage_access_key, settings.object_storage_secret_key, settings.object_storage_region)
 except (ImportError, RuntimeError):
     storage = UnavailableStorage()
 

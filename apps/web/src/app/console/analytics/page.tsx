@@ -5,7 +5,7 @@ import { Activity, BarChart3, BriefcaseBusiness, ShieldAlert } from "lucide-reac
 import { Card } from "@/components/ui";
 import { ConsolePage } from "@/components/console-page";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 type Overview = { verification: { total: number; completed: number; pending: number; completion_rate: number | null }; risk: { low: number; review: number; high: number; average_score: number | null }; cases: { total: number; by_status: Record<string, number>; high_risk: number }; modules: { ocr: { by_status: Record<string, number>; average_confidence: number | null }; validation: { by_status: Record<string, number> }; tampering: { by_status: Record<string, number>; finding_severity: Record<string, number> }; face: { by_outcome: Record<string, number>; quality_failures: number } }; period: { start: string; end: string; timezone: string }; demo: boolean };
 
 export default function AnalyticsPage() { const [days, setDays] = useState("30"); const [data, setData] = useState<Overview | null>(null); const [state, setState] = useState<"loading" | "ready" | "error">("loading");

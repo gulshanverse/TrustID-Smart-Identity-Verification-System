@@ -5,7 +5,7 @@ import { ClipboardList, Search } from "lucide-react";
 import { Card } from "@/components/ui";
 import { ConsolePage } from "@/components/console-page";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 type AuditItem = { id: string; event_type: string; actor_id: string; verification_id: string; case_id?: string | null; document_id?: string | null; provider?: string | null; status: string; created_at: string }; type AuditResponse = { items: AuditItem[]; total: number; limit: number; offset: number; redaction: string };
 export default function AuditPage() { const [eventType, setEventType] = useState(""); const [status, setStatus] = useState(""); const [data, setData] = useState<AuditResponse | null>(null); const [state, setState] = useState<"loading" | "ready" | "error">("loading"); const [offset, setOffset] = useState(0); const limit = 25;
   const load = async () => { setState("loading"); try { const params = new URLSearchParams({ limit: String(limit), offset: String(offset) }); if (eventType) params.set("event_type", eventType); if (status) params.set("status", status); const response = await fetch(`${API_URL}/api/v1/audit/events?${params}`, { credentials: "include" }); if (!response.ok) throw new Error(); setData(await response.json() as AuditResponse); setState("ready"); } catch { setState("error"); } };

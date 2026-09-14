@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api.dependencies import get_auth_service
+from app.core.config import Settings
 from app.core.passwords import hash_password, verify_password
 from app.domain.auth import Permission, Role
 from app.main import app
@@ -45,6 +46,14 @@ def test_login_success_returns_safe_user_and_cookie(client: TestClient) -> None:
     assert "password_hash" not in response.text
     assert "trustid_session=" in response.headers["set-cookie"]
     assert "HttpOnly" in response.headers["set-cookie"]
+    assert "SameSite=lax" in response.headers["set-cookie"]
+
+
+def test_production_settings_require_secure_explicit_cookie_and_cors_configuration() -> None:
+    with pytest.raises(ValueError, match="SESSION_COOKIE_SECURE"):
+        Settings(app_env="production", session_cookie_secure=False)
+    settings = Settings(app_env="production", session_cookie_secure=True, cors_origins="https://demo.example.test", session_cookie_samesite="none")
+    assert settings.cors_origin_list == ["https://demo.example.test"]
 
 
 def test_invalid_and_inactive_login_use_generic_error(client: TestClient) -> None:

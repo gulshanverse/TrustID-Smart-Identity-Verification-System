@@ -5,7 +5,7 @@ import { FileDown, FileText } from "lucide-react";
 import { Card } from "@/components/ui";
 import { ConsolePage } from "@/components/console-page";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 type Report = { id: string; report_type: string; reference_type: string; reference_id: string; generated_by: string; report_version: string; created_at: string };
 
 export default function ReportsPage() { const [type, setType] = useState("verification"); const [reference, setReference] = useState(""); const [reports, setReports] = useState<Report[]>([]); const [state, setState] = useState<"loading" | "ready" | "error">("loading"); const [message, setMessage] = useState("");

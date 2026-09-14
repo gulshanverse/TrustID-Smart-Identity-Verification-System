@@ -164,3 +164,23 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { color: var(--primary-strong); lett
 .face-result { margin-top: 16px; }
 .face-result input[type="file"] { border: 1px solid var(--border); border-radius: 8px; display: block; margin: 8px 0 14px; max-width: 100%; padding: 8px; width: 100%; }
 .face-result .evidence-item p { color: var(--text-secondary); font-size: 12px; line-height: 1.5; margin: 6px 0; }
+.analysis-result { margin-top: 16px; }
+.risk-banner { align-items: center; border: 1px solid var(--border); border-radius: 10px; display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); margin: 14px 0; padding: 14px; }
+.risk-banner div { display: grid; gap: 4px; }
+.risk-banner span, .module-status span, .module-status small, .risk-factor small, .risk-factor em { color: var(--text-secondary); font-size: 12px; }
+.risk-banner strong { font-size: 20px; }
+.risk-low { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+.risk-review { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+.risk-high { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.module-status-grid, .risk-factors { display: grid; gap: 10px; }
+.module-status { border: 1px solid var(--border); border-radius: 8px; display: grid; gap: 4px; padding: 11px; }
+.module-status span { color: var(--primary-strong); font-weight: 700; }
+.module-status small, .risk-factor small { line-height: 1.5; }
+.risk-factor { border: 1px solid var(--border); border-radius: 8px; display: grid; gap: 6px; padding: 12px; }
+.risk-factor > div { align-items: center; display: flex; justify-content: space-between; gap: 12px; }
+.risk-factor > div span { color: var(--primary-strong); font-size: 12px; font-weight: 700; }
+.risk-factor em { font-style: normal; }
+.officer-decision { border-top: 1px solid var(--border); display: grid; gap: 8px; margin-top: 18px; padding-top: 16px; }
+.officer-decision span { color: var(--text-secondary); font-size: 13px; }
+.officer-decision div { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 680px) { .risk-banner { grid-template-columns: 1fr; } }

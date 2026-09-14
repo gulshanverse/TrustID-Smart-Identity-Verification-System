@@ -45,6 +45,7 @@ class VerificationModel(Base):
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     documents: Mapped[list[DocumentModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")
+    risk_assessments: Mapped[list[RiskAssessmentModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")
 
 
 class DocumentModel(Base):
@@ -192,6 +193,67 @@ class FaceVerificationEvidenceModel(Base):
     result: Mapped[FaceVerificationModel] = relationship(back_populates="evidence")
 
 
+class DocumentValidationModel(Base):
+    __tablename__ = "document_validations"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    document_id: Mapped[UUID] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    provider: Mapped[str] = mapped_column(String(128), nullable=False)
+    provider_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    summary: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    document: Mapped[DocumentModel] = relationship()
+    findings: Mapped[list[DocumentValidationFindingModel]] = relationship(back_populates="validation", cascade="all, delete-orphan")
+
+
+class DocumentValidationFindingModel(Base):
+    __tablename__ = "document_validation_findings"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    validation_id: Mapped[UUID] = mapped_column(ForeignKey("document_validations.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    passed: Mapped[bool] = mapped_column(nullable=False)
+    explanation: Mapped[str] = mapped_column(String, nullable=False)
+    reference: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    validation: Mapped[DocumentValidationModel] = relationship(back_populates="findings")
+
+
+class RiskAssessmentModel(Base):
+    __tablename__ = "risk_assessments"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    verification_id: Mapped[UUID] = mapped_column(ForeignKey("verifications.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    risk_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(16), nullable=False)
+    recommendation: Mapped[str] = mapped_column(String, nullable=False)
+    confidence: Mapped[float | None] = mapped_column(nullable=True)
+    summary: Mapped[str] = mapped_column(String, nullable=False)
+    assessment_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    verification: Mapped[VerificationModel] = relationship(back_populates="risk_assessments")
+    factors: Mapped[list[RiskFactorModel]] = relationship(back_populates="assessment", cascade="all, delete-orphan")
+
+
+class RiskFactorModel(Base):
+    __tablename__ = "risk_factors"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    risk_assessment_id: Mapped[UUID] = mapped_column(ForeignKey("risk_assessments.id", ondelete="CASCADE"), index=True)
+    factor_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    source_module: Mapped[str] = mapped_column(String(64), nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    contribution: Mapped[int] = mapped_column(Integer, nullable=False)
+    explanation: Mapped[str] = mapped_column(String, nullable=False)
+    evidence_reference: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    assessment: Mapped[RiskAssessmentModel] = relationship(back_populates="factors")
+
+
 class AuditEventModel(Base):
     __tablename__ = "audit_events"
 
@@ -203,6 +265,8 @@ class AuditEventModel(Base):
     ocr_result_id: Mapped[UUID | None] = mapped_column(ForeignKey("ocr_results.id", ondelete="SET NULL"), nullable=True, index=True)
     tampering_result_id: Mapped[UUID | None] = mapped_column(ForeignKey("tampering_results.id", ondelete="SET NULL"), nullable=True, index=True)
     face_verification_id: Mapped[UUID | None] = mapped_column(ForeignKey("face_verifications.id", ondelete="SET NULL"), nullable=True, index=True)
+    validation_id: Mapped[UUID | None] = mapped_column(ForeignKey("document_validations.id", ondelete="SET NULL"), nullable=True, index=True)
+    risk_assessment_id: Mapped[UUID | None] = mapped_column(ForeignKey("risk_assessments.id", ondelete="SET NULL"), nullable=True, index=True)
     provider: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)

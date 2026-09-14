@@ -4,7 +4,7 @@ TrustID is an AI-assisted identity and document screening platform for Smart Ind
 
 ## Project status
 
-**PHASE 8 COMPLETE — face verification and biometric comparison foundation.** The repository contains secure ingestion, OCR, technical tampering signals, and a provider-neutral, demo-labeled, photo-based face comparison flow with quality states, similarity/confidence, PostgreSQL persistence, RBAC, and privacy-safe audit events. Face comparison supports review; it does not establish legal identity, liveness, authenticity, fraud, or criminality. Risk, government, and production biometric integrations remain deferred.
+**PHASE 9 COMPLETE — verification intelligence and risk assessment foundation.** The repository contains secure ingestion, OCR, technical tampering signals, photo-based demo face comparison, deterministic document validation, verification-level orchestration, explainable persisted risk factors, RBAC, and privacy-safe audit events. Risk assessment supports officer review; it does not establish legal identity, liveness, authenticity, fraud, criminality, immigration eligibility, or an automatic decision.
 
 ## Authoritative source of truth
 
@@ -30,7 +30,7 @@ PostgreSQL · Redis · MinIO
 packages/shared (cross-layer domain contracts)
 ```
 
-The API exposes `GET /api/v1/health`, authentication, document endpoints, OCR, tampering analysis, and face-verification execution/results. See [`docs/document-upload.md`](./docs/document-upload.md), [`docs/ocr.md`](./docs/ocr.md), [`docs/tampering-detection.md`](./docs/tampering-detection.md), and [`docs/face-verification.md`](./docs/face-verification.md).
+The API exposes `GET /api/v1/health`, authentication, document endpoints, OCR, tampering analysis, face-verification execution/results, and verification-level analysis/risk results. See [`docs/document-upload.md`](./docs/document-upload.md), [`docs/ocr.md`](./docs/ocr.md), [`docs/tampering-detection.md`](./docs/tampering-detection.md), [`docs/face-verification.md`](./docs/face-verification.md), and [`docs/verification-intelligence.md`](./docs/verification-intelligence.md).
 
 ## Repository structure
 
@@ -79,6 +79,6 @@ Check `http://localhost:8000/api/v1/health`. Backend quality commands are `.venv
 
 ## Scope boundaries
 
-Phase 8 implements photo-based demo face comparison only. Liveness detection, risk calculation, verification orchestration, cases functionality, analytics calculations, reports generation, blockchain, government biometric/identity integration, production biometric providers, automatic fraud classification, demographic or emotion inference, surveillance, and officer decision automation remain deferred. Console dashboard metrics and records are fictional display data; upload, OCR, technical-analysis, and face-verification success is never simulated when storage or the configured provider is unavailable.
+Phase 9 implements deterministic validation, verification-level orchestration, and factorized risk assessment as decision support only. Liveness detection, cases functionality, analytics calculations, reports generation, blockchain, government biometric/identity integration, production providers, automatic fraud classification, demographic or emotion inference, surveillance, and officer decision automation remain deferred. Console dashboard metrics and records are fictional display data; upload, OCR, technical-analysis, face-verification, and risk success is never fabricated when prerequisites or configured providers are unavailable.
 
 See [`docs/architecture.md`](./docs/architecture.md), [`docs/authentication.md`](./docs/authentication.md), [`docs/dashboard.md`](./docs/dashboard.md), [`docs/design-system.md`](./docs/design-system.md), [`docs/public-website.md`](./docs/public-website.md), and [`docs/development.md`](./docs/development.md) for implementation boundaries and workflows.

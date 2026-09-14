@@ -4,7 +4,7 @@ TrustID is an AI-assisted identity and document screening platform for Smart Ind
 
 ## Project status
 
-**PHASE 1 COMPLETE — design system and application UI foundation.** The repository contains the Phase 0 application foundation plus a reusable, accessible TrustID visual system, public/console layout shells, status semantics, document/evidence presentation components, and a responsive design-system showcase. Product workflows and AI providers are intentionally not implemented yet.
+**PHASE 2 COMPLETE — public website.** The repository contains the Phase 0 application foundation, Phase 1 design system, and a complete public-facing TrustID website with homepage narrative, informational routes, safe product messaging, responsive navigation, and a non-authentication login placeholder. Protected product workflows and AI providers are intentionally not implemented yet.
 
 ## Authoritative source of truth
 
@@ -88,4 +88,4 @@ Check the API at `http://localhost:8000/api/v1/health`. Backend quality commands
 
 The following are deliberately deferred: full public website, dashboard, document upload, OCR implementation, tampering detection, face verification, risk engine, cases, investigation, analytics, reports, audit UI, blockchain, government database integration, production AI providers, and full authentication. Refer to the master documents before beginning the next explicit phase.
 
-See [`docs/architecture.md`](./docs/architecture.md) for boundaries, [`docs/design-system.md`](./docs/design-system.md) for the Phase 1 UI conventions, and [`docs/development.md`](./docs/development.md) for the development workflow.
+See [`docs/architecture.md`](./docs/architecture.md) for boundaries, [`docs/design-system.md`](./docs/design-system.md) for the Phase 1 UI conventions, [`docs/public-website.md`](./docs/public-website.md) for the Phase 2 routes and messaging boundaries, and [`docs/development.md`](./docs/development.md) for the development workflow.

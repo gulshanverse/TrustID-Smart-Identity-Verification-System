@@ -1,0 +1,23 @@
+:root {
+  --navy: #0b1f3a;
+  --ink: #172033;
+  --muted: #64748b;
+  --line: #dbe3ee;
+  --surface: #ffffff;
+  --canvas: #f5f7fb;
+  --blue: #2563eb;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+.shell { width: min(760px, calc(100% - 48px)); margin: 0 auto; padding: 14vh 0; }
+.eyebrow { color: var(--blue); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; }
+h1 { color: var(--navy); font-size: clamp(2.5rem, 7vw, 5rem); letter-spacing: -0.055em; line-height: 0.98; margin: 22px 0 20px; max-width: 680px; }
+.lead { color: var(--muted); font-size: 1.2rem; line-height: 1.65; max-width: 620px; }
+.status-card { align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(15, 39, 71, 0.07); display: flex; gap: 16px; margin-top: 40px; padding: 20px; }
+.status-mark { align-items: center; background: #dcfce7; border-radius: 999px; color: #166534; display: inline-flex; flex: 0 0 32px; font-weight: 700; height: 32px; justify-content: center; }
+.status-card strong { color: var(--navy); display: block; margin: 3px 0 6px; }
+.status-card p, .notice { color: var(--muted); line-height: 1.6; margin: 0; }
+.notice { border-left: 3px solid #f59e0b; margin-top: 24px; padding-left: 14px; }
+@media (max-width: 600px) { .shell { width: min(100% - 32px, 760px); padding-top: 12vh; } }

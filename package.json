@@ -1,0 +1,13 @@
+{
+  "name": "trustid",
+  "private": true,
+  "packageManager": "npm@10",
+  "scripts": {
+    "web:install": "npm --prefix apps/web install",
+    "web:dev": "npm --prefix apps/web run dev",
+    "web:lint": "npm --prefix apps/web run lint",
+    "web:typecheck": "npm --prefix apps/web run typecheck",
+    "web:test": "npm --prefix apps/web run test",
+    "web:build": "npm --prefix apps/web run build"
+  }
+}

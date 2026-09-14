@@ -1,14 +1,14 @@
 # TrustID architecture
 
-TrustID is being developed as a modular monolith with a Next.js frontend, a FastAPI backend, shared domain contracts, PostgreSQL persistence, Redis coordination, and S3-compatible object storage. Phase 0 establishes boundaries without implementing verification workflows or provider integrations.
+TrustID is being developed as a modular monolith with a Next.js frontend, a FastAPI backend, shared domain contracts, PostgreSQL persistence, Redis coordination, and S3-compatible object storage. Phase 3 adds a protected console shell and authentication boundary without implementing verification workflows or provider integrations.
 
 ## Frontend
 
-`apps/web` contains the Next.js App Router shell, global institutional styling, and feature-oriented locations for future work. The browser must call TrustID API routes rather than AI providers directly. Future feature modules belong under `apps/web/src/features` and should keep UI, data access, and presentation concerns local to each capability.
+`apps/web` contains the Next.js App Router shell, global institutional styling, public marketing routes, a centralized `AuthProvider`, protected console pages, and feature-oriented locations for future work. The browser must call TrustID API routes rather than AI providers directly. Future feature modules belong under `apps/web/src/features` and should keep UI, data access, and presentation concerns local to each capability.
 
 ## Backend
 
-`apps/api` contains the FastAPI modular monolith. Routes live in the API layer, domain contracts define stable concepts, services expose provider-neutral interfaces, repositories will own data access, and database sessions are isolated in `app/db`. The current `/api/v1/health` route is the only business-neutral endpoint.
+`apps/api` contains the FastAPI modular monolith. Routes live in the API layer, domain contracts define stable concepts, services expose provider-neutral interfaces, repositories will own data access, and database sessions are isolated in `app/db`. Authentication routes delegate to an auth service, session and permission dependencies enforce boundaries, and auth models are represented in Alembic migrations. The `/api/v1/health` route remains unchanged.
 
 ## Data and infrastructure
 
@@ -24,4 +24,4 @@ The intended boundary is frontend → verification API → orchestrator → prov
 
 ## Future integrations
 
-Authentication, RBAC, document processing, cases, reports, analytics, audit, government data providers, and optional blockchain anchoring are intentionally deferred. Any future integration must preserve the evidence-first decision-support model and clearly distinguish demo or simulated behavior.
+Document processing, cases, reports, analytics, government data providers, and optional blockchain anchoring remain deferred. Authentication and RBAC are now foundations only: local demo sessions use an in-process service until a shared persistent repository and production hardening are added. Any future integration must preserve the evidence-first decision-support model and clearly distinguish demo or simulated behavior.

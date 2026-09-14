@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.responses import Response
 
+from app.api.v1.auth import router as auth_router
+from app.api.v1.console import router as console_router
 from app.api.v1.health import router as health_router
 from app.core.config import get_settings
 
@@ -19,7 +21,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -35,7 +37,12 @@ async def request_context(
         logger.exception("Unhandled request failure", extra={"request_id": request_id, "path": request.url.path})
         return JSONResponse(status_code=500, content={"code": "INTERNAL_SERVER_ERROR", "message": "An unexpected error occurred.", "request_id": request_id})
     response.headers["X-Request-ID"] = request_id
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
     return response
 
 
 app.include_router(health_router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(console_router, prefix="/api/v1")

@@ -4,7 +4,7 @@ TrustID is an AI-assisted identity and document screening platform for Smart Ind
 
 ## Project status
 
-**PHASE 2 COMPLETE — public website.** The repository contains the Phase 0 application foundation, Phase 1 design system, and a complete public-facing TrustID website with homepage narrative, informational routes, safe product messaging, responsive navigation, and a non-authentication login placeholder. Protected product workflows and AI providers are intentionally not implemented yet.
+**PHASE 3 FOUNDATION COMPLETE — secure console and authentication.** The repository contains the Phase 0 engineering foundation, Phase 1 design system, Phase 2 public website, Phase 2.1 navigation/metadata polish, and a protected console/authentication foundation. Authentication uses secure password hashing, HttpOnly cookie sessions, explicit roles and permissions, protected API dependencies, and clearly labeled demo-only placeholders. Document workflows, AI providers, and business records remain deferred.
 
 ## Authoritative source of truth
 
@@ -15,7 +15,7 @@ Use both master documents together for all TrustID product, UX, architecture, an
 | [`TRUSTID_MASTER_SPEC.md`](./TRUSTID_MASTER_SPEC.md) | Product and engineering requirements, workflows, routes, data models, safety boundaries, and acceptance criteria. |
 | [`MANUS_MASTER_CONTEXT_PROMPT.md`](./MANUS_MASTER_CONTEXT_PROMPT.md) | Implementation context covering design direction, architecture, demo scenarios, risk semantics, frontend/backend expectations, and delivery standards. |
 
-The master specification defines **what TrustID must be**. The master context prompt defines **how TrustID should be designed and implemented**. The Phase 0 scope and quality gates are defined in the supplied execution brief.
+The master specification defines **what TrustID must be**. The master context prompt defines **how TrustID should be designed and implemented**.
 
 ## Architecture
 
@@ -24,24 +24,23 @@ apps/web (Next.js + React + TypeScript)
         ↓
 apps/api (FastAPI modular monolith, /api/v1)
         ↓
-services and repositories
+auth service · permission dependencies · provider-neutral services
         ↓
 PostgreSQL · Redis · MinIO
-
 packages/shared (cross-layer domain contracts)
 ```
 
-The API exposes a working `GET /api/v1/health` endpoint. Provider-neutral protocols exist for OCR, document validation, tampering detection, face verification, and risk assessment, but no provider or fake result is connected in Phase 0.
+The API exposes `GET /api/v1/health` plus the Phase 3 authentication boundary: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, and `GET /api/v1/auth/me`. Provider-neutral protocols exist for OCR, document validation, tampering detection, face verification, and risk assessment, but no provider or fake result is connected.
 
 ## Repository structure
 
 ```text
 apps/
-  web/                 Next.js foundation shell and frontend tests
-  api/                 FastAPI application, contracts, services, and API tests
+  web/                 Next.js public site, auth state, protected console, and frontend tests
+  api/                 FastAPI app, auth service, models, migrations, and API tests
 packages/
   shared/              Shared TypeScript domain contracts
-docs/                  Architecture and development guides
+docs/                  Architecture, auth, public website, and development guides
 infra/                 Reserved for future infrastructure assets
 .github/workflows/     Foundational CI checks
 TRUSTID_MASTER_SPEC.md
@@ -52,15 +51,9 @@ docker-compose.yml
 
 ## Local development
 
-Requirements are Node.js 22+, npm, Python 3.11+, Docker, and Docker Compose.
+Requirements are Node.js 22+, npm, Python 3.11+, Docker, and Docker Compose. Start local infrastructure from the repository root with `docker compose up -d postgres redis minio`. Copy `.env.example` to `.env` if local configuration overrides are needed. Never commit real secrets or identity data.
 
-Start local infrastructure from the repository root:
-
-```bash
-docker compose up -d postgres redis minio
-```
-
-Copy `.env.example` to `.env` if local configuration overrides are needed. Never commit real secrets or identity data.
+To enable fictional demo users locally, set `DEMO_PASSWORD` to a private development-only value of at least ten characters. The password is not committed or embedded in the frontend. Run the API on port 8000 and the web application on port 3000.
 
 ### Frontend
 
@@ -70,7 +63,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. Quality commands are `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`.
+Open `http://localhost:3000`. Protected console destinations include `/console/dashboard`, `/console/verify`, `/console/verifications`, `/console/cases`, `/console/investigation`, `/console/analytics`, `/console/audit`, `/console/reports`, and `/console/settings`.
 
 ### Backend
 
@@ -82,10 +75,10 @@ pip install -e '.[dev]'
 uvicorn app.main:app --reload --port 8000
 ```
 
-Check the API at `http://localhost:8000/api/v1/health`. Backend quality commands are `pytest`, `ruff check app tests`, and `mypy app`.
+Check `http://localhost:8000/api/v1/health`. Backend quality commands are `.venv/bin/pytest`, `.venv/bin/ruff check app tests migrations`, `.venv/bin/mypy app`, and `.venv/bin/alembic upgrade --sql head`.
 
-## Phase 0 boundaries
+## Scope boundaries
 
-The following are deliberately deferred: full public website, dashboard, document upload, OCR implementation, tampering detection, face verification, risk engine, cases, investigation, analytics, reports, audit UI, blockchain, government database integration, production AI providers, and full authentication. Refer to the master documents before beginning the next explicit phase.
+Phase 3 does not implement document upload, OCR, tampering detection, face verification, risk calculation, verification orchestration, cases functionality, analytics calculations, reports generation, blockchain, government database integration, or production AI providers. Console pages use professional empty states rather than fabricated records or metrics.
 
-See [`docs/architecture.md`](./docs/architecture.md) for boundaries, [`docs/design-system.md`](./docs/design-system.md) for the Phase 1 UI conventions, [`docs/public-website.md`](./docs/public-website.md) for the Phase 2 routes and messaging boundaries, and [`docs/development.md`](./docs/development.md) for the development workflow.
+See [`docs/architecture.md`](./docs/architecture.md), [`docs/authentication.md`](./docs/authentication.md), [`docs/design-system.md`](./docs/design-system.md), [`docs/public-website.md`](./docs/public-website.md), and [`docs/development.md`](./docs/development.md) for implementation boundaries and workflows.

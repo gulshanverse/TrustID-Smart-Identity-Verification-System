@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     object_storage_access_key: str = "minioadmin"
     object_storage_secret_key: str = "minioadmin"
     cors_origins: str = "http://localhost:3000"
+    demo_password: str | None = None
+    session_cookie_name: str = "trustid_session"
+    session_cookie_secure: bool = False
+    session_cookie_max_age: int = 28800
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", case_sensitive=False)
 

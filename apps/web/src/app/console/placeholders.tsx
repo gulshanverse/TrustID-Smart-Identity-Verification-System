@@ -1,0 +1,6 @@
+import { ConsolePlaceholder } from "@/components/console-page";
+export function InvestigationPage() { return <ConsolePlaceholder title="Investigation" description="Investigation support will be connected to evidence and cases in a later phase." message="Investigation workflows are not enabled in this phase." />; }
+export function AnalyticsPage() { return <ConsolePlaceholder title="Analytics" description="Operational analytics will be connected when verified activity exists." message="Analytics are not enabled in this phase." />; }
+export function AuditPage() { return <ConsolePlaceholder title="Audit Trail" description="Reviewable authentication and verification events will appear here in a later phase." message="Audit records are not available in this phase." />; }
+export function ReportsPage() { return <ConsolePlaceholder title="Reports" description="Evidence-oriented reports will be available when verification workflows are implemented." message="Report generation is not enabled in this phase." />; }
+export function SettingsPage() { return <ConsolePlaceholder title="Settings" description="Account and system settings are reserved for authorized administrators." message="Settings management is not enabled in this phase." />; }

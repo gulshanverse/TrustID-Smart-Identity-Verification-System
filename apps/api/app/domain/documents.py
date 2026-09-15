@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import re
 from dataclasses import dataclass
 from enum import StrEnum
 from io import BytesIO
@@ -7,7 +9,10 @@ from pathlib import PurePath
 from typing import cast
 from uuid import UUID, uuid4
 
+from botocore.config import Config
+
 MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024
+logger = logging.getLogger("trustid.storage")
 
 
 class DocumentType(StrEnum):
@@ -115,19 +120,56 @@ class S3ObjectStorage(ObjectStorage):
             import boto3
         except ImportError as exc:  # pragma: no cover - deployment dependency
             raise RuntimeError("Object storage client is not installed.") from exc
-        self.client = boto3.client("s3", endpoint_url=endpoint, region_name=region, aws_access_key_id=access_key, aws_secret_access_key=secret_key)
+        self.client = boto3.client(
+            "s3",
+            endpoint_url=endpoint,
+            region_name=region,
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            config=Config(s3={"addressing_style": "path"}),
+        )
+
+    @staticmethod
+    def _safe_error_message(exc: Exception) -> str:
+        message = str(exc)
+        message = re.sub(r"https?://[^\s'\"]+", "<url>", message)
+        message = re.sub(r"(?i)(access[_-]?key|secret[_-]?key|token|password|authorization)[=:][^\s,;]+", r"\1=<redacted>", message)
+        return message[:240] or "storage operation failed"
+
+    def _log_storage_error(self, operation: str, key: str, exc: Exception) -> None:
+        logger.warning(
+            "s3_storage_operation_failed",
+            extra={
+                "operation": operation,
+                "storage_key": key,
+                "error_type": type(exc).__name__,
+                "error_message": self._safe_error_message(exc),
+            },
+        )
 
     def put(self, key: str, content: bytes, mime_type: str) -> StoredObject:
         import hashlib
         checksum = hashlib.sha256(content).hexdigest()
-        self.client.put_object(Bucket=self.bucket, Key=key, Body=BytesIO(content), ContentType=mime_type, ServerSideEncryption="AES256")
+        try:
+            self.client.put_object(Bucket=self.bucket, Key=key, Body=BytesIO(content), ContentType=mime_type, ServerSideEncryption="AES256")
+        except Exception as exc:
+            self._log_storage_error("put", key, exc)
+            raise
         return StoredObject(key=key, size=len(content), checksum=checksum)
 
     def delete(self, key: str) -> None:
-        self.client.delete_object(Bucket=self.bucket, Key=key)
+        try:
+            self.client.delete_object(Bucket=self.bucket, Key=key)
+        except Exception as exc:
+            self._log_storage_error("delete", key, exc)
+            raise
 
     def get(self, key: str) -> bytes:
-        response = self.client.get_object(Bucket=self.bucket, Key=key)
+        try:
+            response = self.client.get_object(Bucket=self.bucket, Key=key)
+        except Exception as exc:
+            self._log_storage_error("get", key, exc)
+            raise
         return cast(bytes, response["Body"].read())
 
 

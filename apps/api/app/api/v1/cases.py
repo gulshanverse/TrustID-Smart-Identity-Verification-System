@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.case_schemas import (
@@ -24,10 +25,12 @@ from app.db.models import CaseModel
 from app.db.session import get_db
 from app.domain.auth import Permission, Role, permissions_for_roles
 from app.domain.cases import CaseRecord, require_decision_reason
+from app.domain.documents import safe_exception_message
 from app.repositories.case_repository import SqlAlchemyCaseRepository
 from app.services.auth_service import AuthUser
 
 router = APIRouter(prefix="/cases", tags=["cases"])
+logger = logging.getLogger("trustid.cases.api")
 
 
 def can(user: AuthUser, permission: Permission) -> bool:
@@ -94,10 +97,25 @@ def change_status(case_id: UUID, payload: StatusRequest, user: AuthUser = Depend
 
 
 @router.post("/{case_id}/decision", response_model=dict[str, object])
-def record_decision(case_id: UUID, payload: DecisionRequest, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, object]:
+def record_decision(case_id: UUID, payload: DecisionRequest, request: Request, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, object]:
     ensure(user, Permission.CASE_DECIDE); repo = SqlAlchemyCaseRepository(db); model = get_case(case_id, user, db)
-    try: reason = require_decision_reason(payload.decision, payload.reason); item = repo.decision(model, user.id, payload.decision, reason); return {"id": item.id, "decision": item.decision, "created_at": item.created_at}
-    except ValueError as exc: raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    try:
+        reason = require_decision_reason(payload.decision, payload.reason)
+        item = repo.decision(model, user.id, payload.decision, reason)
+        return {"id": item.id, "decision": item.decision, "created_at": item.created_at, "case_status": model.status, "reason": item.reason}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except Exception as exc:
+        db.rollback()
+        logger.warning(
+            "case_decision_failed operation=record_decision case_id=%s request_id=%s decision=%s error_type=%s error_message=%s",
+            case_id,
+            getattr(request.state, "request_id", "unavailable"),
+            payload.decision.value,
+            type(exc).__name__,
+            safe_exception_message(exc),
+        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="The officer decision could not be recorded.") from exc
 
 
 @router.get("/{case_id}/evidence", response_model=list[EvidenceResponse])

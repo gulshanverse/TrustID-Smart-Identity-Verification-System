@@ -126,7 +126,23 @@ class SqlAlchemyCaseRepository:
         item = CaseEvidenceModel(id=uuid4(), case_id=model.id, evidence_type=evidence_type, source_type=source_type, source_id=source_id, title=title.strip(), summary=summary.strip(), severity=severity, created_by=actor_id, created_at=datetime.now(UTC)); self.db.add(item); self.db.add(AuditEventModel(event_type="CASE_EVIDENCE_ADDED", actor_id=actor_id, verification_id=model.verification_id, case_id=model.id, status="ADDED", created_at=datetime.now(UTC))); self.db.commit(); return item
 
     def decision(self, model: CaseModel, actor_id: UUID, value: OfficerDecision, reason: str) -> CaseDecisionModel:
-        if model.status == CaseStatus.CLOSED.value: raise ValueError("Closed cases cannot receive decisions.")
-        item = CaseDecisionModel(id=uuid4(), case_id=model.id, decision=value.value, reason=reason, decided_by=actor_id, created_at=datetime.now(UTC)); self.db.add(item); self.db.add(AuditEventModel(event_type="CASE_DECISION_RECORDED", actor_id=actor_id, verification_id=model.verification_id, case_id=model.id, status=value.value, created_at=datetime.now(UTC))); self.db.commit(); return item
+        if model.status == CaseStatus.CLOSED.value:
+            raise ValueError("Closed cases cannot receive decisions.")
+        if self.db.scalar(select(CaseDecisionModel).where(CaseDecisionModel.case_id == model.id)) is not None:
+            raise ValueError("A decision has already been recorded for this case.")
+        now = datetime.now(UTC)
+        item = CaseDecisionModel(id=uuid4(), case_id=model.id, decision=value.value, reason=reason, decided_by=actor_id, created_at=now)
+        self.db.add(item)
+        self.db.flush()
+        model.status = CaseStatus.UNDER_REVIEW.value if value == OfficerDecision.REVIEW else CaseStatus.RESOLVED.value
+        model.resolution = value.value
+        model.resolution_reason = reason
+        model.updated_at = now
+        if value != OfficerDecision.REVIEW:
+            model.resolved_by = actor_id
+            model.resolved_at = now
+        self.db.add(AuditEventModel(event_type="CASE_DECISION_RECORDED", actor_id=actor_id, verification_id=model.verification_id, case_id=model.id, status=value.value, created_at=now))
+        self.db.commit()
+        return item
 
     def get_timeline(self, case_id: UUID) -> list[AuditEventModel]: return list(self.db.scalars(select(AuditEventModel).where(AuditEventModel.case_id == case_id).order_by(AuditEventModel.created_at)).all())

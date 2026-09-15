@@ -8,12 +8,14 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     AuditEventModel,
     Base,
+    CaseModel,
     FaceVerificationModel,
     OCRResultModel,
     RiskAssessmentModel,
     TamperingResultModel,
     VerificationModel,
 )
+from app.domain.cases import CasePriority, CaseStatus, OfficerDecision
 from app.domain.documents import (
     DocumentLifecycle,
     DocumentRecord,
@@ -31,6 +33,7 @@ from app.domain.validation import (
     ValidationSeverity,
     ValidationStatus,
 )
+from app.repositories.case_repository import SqlAlchemyCaseRepository
 from app.repositories.document_repository import SqlAlchemyDocumentRepository
 from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
@@ -116,6 +119,13 @@ def test_verification_orchestration_persists_risk_and_audit_events(db: Session) 
     event_types = {event.event_type for event in events}
     assert {"OCR_COMPLETED", "TAMPERING_COMPLETED", "FACE_VERIFICATION_COMPLETED", "DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED"} <= event_types
     assert [event.event_type for event in events][-4:] == ["DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED"] or events[-1].event_type == "VERIFICATION_ANALYSIS_COMPLETED"
+    cases = SqlAlchemyCaseRepository(db)
+    case = cases.create_case(verification.id, actor, "Fictional demo officer case", "DEMO / SIMULATED case for human decision.", CasePriority.MEDIUM)
+    case_model = cases.get(case.id, actor)
+    assert case_model is not None
+    decision = cases.decision(case_model, actor, OfficerDecision.APPROVE, "Approved after reviewing the complete demo evidence.")
+    assert decision.decision == OfficerDecision.APPROVE.value
+    assert db.get(CaseModel, case.id).status == CaseStatus.RESOLVED.value
 
 
 def test_repeated_analysis_is_idempotent_and_marks_lifecycle_complete(db: Session) -> None:

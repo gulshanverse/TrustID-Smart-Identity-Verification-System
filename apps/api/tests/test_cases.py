@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from app.db.models import AuditEventModel, Base, CaseModel, CaseNoteModel
+from app.db.models import AuditEventModel, Base, CaseDecisionModel, CaseModel, CaseNoteModel
 from app.domain.cases import (
     CasePriority,
     CaseStatus,
@@ -67,6 +67,36 @@ def test_case_status_assignment_notes_decision_and_close_rules(db: Session) -> N
     with pytest.raises(ValueError): repo.add_note(model, actor, "Cannot change closed case")
     events = db.scalars(select(AuditEventModel).where(AuditEventModel.case_id == case.id)).all()
     assert {event.event_type for event in events} >= {"CASE_CREATED", "CASE_ASSIGNED", "CASE_STATUS_CHANGED", "CASE_NOTE_ADDED", "CASE_DECISION_RECORDED", "CASE_RESOLVED", "CASE_CLOSED"}
+
+
+@pytest.mark.parametrize(
+    ("decision", "expected_status", "reason"),
+    [(OfficerDecision.APPROVE, CaseStatus.RESOLVED, "Officer approved the completed verification."), (OfficerDecision.REVIEW, CaseStatus.UNDER_REVIEW, "Additional manual review is required."), (OfficerDecision.REJECT, CaseStatus.RESOLVED, "Verification evidence is inconsistent.")],
+)
+def test_each_officer_decision_has_distinct_persisted_semantics_and_audit(db: Session, decision: OfficerDecision, expected_status: CaseStatus, reason: str) -> None:
+    repo, actor, _verification, case, model = create_case(db)
+    item = repo.decision(model, actor, decision, reason)
+    persisted = db.get(CaseModel, case.id)
+    assert persisted is not None
+    assert item.decision == decision.value
+    assert persisted.status == expected_status.value
+    assert persisted.resolution == decision.value
+    assert persisted.resolution_reason == reason
+    assert persisted.resolved_by == actor if decision != OfficerDecision.REVIEW else persisted.resolved_by is None
+    assert db.scalar(select(CaseDecisionModel).where(CaseDecisionModel.id == item.id)) is not None
+    audit = db.scalar(select(AuditEventModel).where(AuditEventModel.case_id == case.id, AuditEventModel.event_type == "CASE_DECISION_RECORDED"))
+    assert audit is not None
+    assert audit.actor_id == actor
+    assert audit.status == decision.value
+
+
+def test_duplicate_officer_decision_is_rejected_without_duplicate_audit(db: Session) -> None:
+    repo, actor, _verification, case, model = create_case(db)
+    repo.decision(model, actor, OfficerDecision.APPROVE, "Approved after officer review.")
+    with pytest.raises(ValueError, match="already been recorded"):
+        repo.decision(model, actor, OfficerDecision.REJECT, "A later rejection is not allowed.")
+    assert len(db.scalars(select(CaseDecisionModel).where(CaseDecisionModel.case_id == case.id)).all()) == 1
+    assert len(db.scalars(select(AuditEventModel).where(AuditEventModel.case_id == case.id, AuditEventModel.event_type == "CASE_DECISION_RECORDED")).all()) == 1
 
 
 def test_case_owner_and_assignment_visibility_are_scoped(db: Session) -> None:

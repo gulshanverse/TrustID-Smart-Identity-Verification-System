@@ -79,8 +79,9 @@ def test_provider_failure_is_safe_and_audited(db: Session) -> None:
         def process(self, document, content):
             raise ValueError("provider failed")
 
-    with pytest.raises(RuntimeError, match="could not be completed"):
+    with pytest.raises(RuntimeError, match="could not be completed") as failure:
         OCRService(storage, SqlAlchemyOCRRepository(db), BrokenProvider()).process(document.id, actor)
+    assert isinstance(failure.value.__cause__, ValueError)
     events = db.scalars(select(AuditEventModel).where(AuditEventModel.document_id == document.id)).all()
     assert events[-1].event_type == "OCR_FAILED"
 
@@ -113,5 +114,15 @@ def test_raw_ocr_text_is_not_logged(db: Session, caplog: pytest.LogCaptureFixtur
     actor, storage, document = prepared(db)
     with caplog.at_level(logging.INFO):
         OCRService(storage, SqlAlchemyOCRRepository(db), DemoOCRProvider()).process(document.id, actor)
-    assert "ARUN MEHTA" not in caplog.text
+    assert "FICTIONAL DEMO APPLICANT" not in caplog.text
     assert "DEMO-P123456" not in caplog.text
+
+
+def test_demo_fixture_output_is_explicitly_fictional_and_contains_no_real_pii(db: Session) -> None:
+    _, storage, document = prepared(db)
+    raw_text, fields, _, _ = DemoOCRProvider().process(document, storage.get(document.storage_key))
+
+    assert "FICTIONAL" in raw_text
+    assert all("@" not in field.value for field in fields)
+    assert all("password" not in field.value.lower() for field in fields)
+    assert "FICTIONAL DEMO APPLICANT" in raw_text

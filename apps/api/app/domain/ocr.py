@@ -66,7 +66,7 @@ class DemoOCRProvider(OCRProvider):
             raise ValueError("The demo OCR provider only processes explicitly marked demo fixtures.")
         if document.document_type == DocumentType.PASSPORT:
             values: Sequence[tuple[str, str]] = (
-                ("full_name", "ARUN MEHTA"), ("passport_number", "DEMO-P123456"),
+                ("full_name", "FICTIONAL DEMO APPLICANT"), ("passport_number", "DEMO-P123456"),
                 ("nationality", "DEMO REPUBLIC"), ("date_of_birth", "1998-04-12"),
                 ("expiry_date", "2030-04-11"), ("gender", "X"),
             )

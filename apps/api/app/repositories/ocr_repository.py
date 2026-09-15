@@ -56,6 +56,7 @@ class SqlAlchemyOCRRepository:
                 field_model.evidence.append(OCREvidenceModel(id=uuid4(), ocr_field_id=field_model.id, page=field.evidence.page, text=field.evidence.text, start_offset=field.evidence.start_offset, end_offset=field.evidence.end_offset, line_index=field.evidence.line_index))
             model.fields.append(field_model)
         self.db.add(model)
+        self.db.flush()
         self.add_audit("OCR_COMPLETED" if result.status == OCRStatus.COMPLETED else "OCR_FAILED", actor_id, result.document_id, result.status.value, result.id, result.provider)
 
     def get_latest_for_owner(self, document_id: UUID, owner_id: UUID) -> OCRResult | None:

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_permission
@@ -11,12 +12,14 @@ from app.api.ocr_schemas import OCREvidenceResponse, OCRFieldResponse, OCRRespon
 from app.core.config import get_settings
 from app.db.session import get_db
 from app.domain.auth import Permission
+from app.domain.documents import safe_exception_message
 from app.domain.ocr import DemoOCRProvider, OCRResult
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
 from app.services.auth_service import AuthUser
 from app.services.ocr_service import OCRService
 
 router = APIRouter(prefix="/documents", tags=["ocr"])
+logger = logging.getLogger("trustid.ocr.api")
 
 
 def get_ocr_service(db: Session = Depends(get_db)) -> OCRService:
@@ -32,13 +35,20 @@ def response(result: OCRResult) -> OCRResponse:
 
 
 @router.post("/{document_id}/ocr", response_model=OCRResponse, status_code=status.HTTP_201_CREATED)
-def process_ocr(document_id: UUID, user: AuthUser = Depends(require_permission(Permission.VERIFICATION_WORKFLOW)), service: OCRService = Depends(get_ocr_service)) -> OCRResponse:
+def process_ocr(document_id: UUID, request: Request, user: AuthUser = Depends(require_permission(Permission.VERIFICATION_WORKFLOW)), service: OCRService = Depends(get_ocr_service)) -> OCRResponse:
     try:
         return response(service.process(document_id, user.id))
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except RuntimeError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        logger.warning(
+            "ocr_processing_failed operation=process document_id=%s request_id=%s error_type=%s error_message=%s",
+            document_id,
+            getattr(request.state, "request_id", "unavailable"),
+            type(exc).__name__,
+            safe_exception_message(exc),
+        )
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="OCR processing could not be completed.") from exc
 
 
 @router.get("/{document_id}/ocr", response_model=OCRResponse)

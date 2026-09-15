@@ -103,7 +103,7 @@ def test_verification_orchestration_persists_risk_and_audit_events(db: Session) 
     document = documents.upload(verification.id, actor, "demo.pdf", "application/pdf", content, DocumentType.PASSPORT)
     OCRService(storage, SqlAlchemyOCRRepository(db), __import__("app.domain.ocr", fromlist=["DemoOCRProvider"]).DemoOCRProvider()).process(document.id, actor)
     TamperingService(storage, SqlAlchemyTamperingRepository(db), __import__("app.domain.tampering", fromlist=["DemoTamperingProvider"]).DemoTamperingProvider()).process(document.id, actor)
-    FaceVerificationService(storage, SqlAlchemyFaceRepository(db), __import__("app.domain.face", fromlist=["DemoFaceVerificationProvider"]).DemoFaceVerificationProvider()).process(document.id, actor, b"\xff\xd8\xffTRUSTID-FACE:MATCH", "image/jpeg", __import__("app.domain.face", fromlist=["FaceScenario"]).FaceScenario.MATCH)
+    FaceVerificationService(storage, SqlAlchemyFaceRepository(db), __import__("app.domain.face", fromlist=["DemoFaceVerificationProvider"]).DemoFaceVerificationProvider()).process(document.id, actor, b"\xff\xd8\xff" + "TRUSTID-FACE:MATCH\nDEMO / SIMULATED\nFICTIONAL SAMPLE — NOT A REAL PERSON\n".encode(), "image/jpeg", __import__("app.domain.face", fromlist=["FaceScenario"]).FaceScenario.MATCH)
     result = VerificationAnalysisService(db, actor).analyze(verification.id)
     assert result.risk.risk_level == RiskLevel.LOW
     assert result.risk.risk_score == sum(factor.contribution for factor in result.risk.factors)
@@ -126,7 +126,7 @@ def test_repeated_analysis_is_idempotent_and_marks_lifecycle_complete(db: Sessio
     document = documents.upload(verification.id, actor, "demo.pdf", "application/pdf", b"%PDF-1.7\nTRUSTID-DEMO-OCR:demo\nTRUSTID-TAMPERING:CLEAN\nTRUSTID-FACE:DOCUMENT", DocumentType.PASSPORT)
     OCRService(storage, SqlAlchemyOCRRepository(db), __import__("app.domain.ocr", fromlist=["DemoOCRProvider"]).DemoOCRProvider()).process(document.id, actor)
     TamperingService(storage, SqlAlchemyTamperingRepository(db), __import__("app.domain.tampering", fromlist=["DemoTamperingProvider"]).DemoTamperingProvider()).process(document.id, actor)
-    FaceVerificationService(storage, SqlAlchemyFaceRepository(db), __import__("app.domain.face", fromlist=["DemoFaceVerificationProvider"]).DemoFaceVerificationProvider()).process(document.id, actor, b"\xff\xd8\xffTRUSTID-FACE:MATCH", "image/jpeg", __import__("app.domain.face", fromlist=["FaceScenario"]).FaceScenario.MATCH)
+    FaceVerificationService(storage, SqlAlchemyFaceRepository(db), __import__("app.domain.face", fromlist=["DemoFaceVerificationProvider"]).DemoFaceVerificationProvider()).process(document.id, actor, b"\xff\xd8\xff" + "TRUSTID-FACE:MATCH\nDEMO / SIMULATED\nFICTIONAL SAMPLE — NOT A REAL PERSON\n".encode(), "image/jpeg", __import__("app.domain.face", fromlist=["FaceScenario"]).FaceScenario.MATCH)
     first = VerificationAnalysisService(db, actor).analyze(verification.id)
     second = VerificationAnalysisService(db, actor).analyze(verification.id)
     assert first.risk.id == second.risk.id

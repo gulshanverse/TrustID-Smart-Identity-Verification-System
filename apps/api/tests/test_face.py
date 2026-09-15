@@ -19,10 +19,11 @@ from app.services.document_service import DocumentService
 from app.services.face_service import FaceVerificationService
 
 DOCUMENT = b"%PDF-1.7\nTRUSTID-FACE:DOCUMENT"
+DEMO_FACE_FIXTURE = b"\xff\xd8\xff" + "TRUSTID-FACE:MATCH\nDEMO / SIMULATED\nFICTIONAL SAMPLE — NOT A REAL PERSON\n".encode()
 
 
 def presented(scenario: FaceScenario) -> bytes:
-    return b"\xff\xd8\xff" + f"TRUSTID-FACE:{scenario.value}".encode()
+    return DEMO_FACE_FIXTURE if scenario == FaceScenario.MATCH else b"\xff\xd8\xff" + f"TRUSTID-FACE:{scenario.value}".encode()
 
 
 @pytest.fixture
@@ -54,6 +55,15 @@ def test_demo_provider_supports_all_deterministic_scenarios() -> None:
         assert first == second
         assert DemoFaceVerificationProvider.name == "DEMO / SIMULATED"
         assert first[0] in {FaceOutcome.MATCH, FaceOutcome.MISMATCH, FaceOutcome.REVIEW, FaceOutcome.UNAVAILABLE}
+
+
+def test_fictional_demo_face_fixture_is_deterministic_and_contains_no_real_pii() -> None:
+    assert presented(FaceScenario.MATCH) == DEMO_FACE_FIXTURE
+    assert b"TRUSTID-FACE:MATCH" in DEMO_FACE_FIXTURE
+    assert b"FICTIONAL SAMPLE" in DEMO_FACE_FIXTURE
+    assert b"@" not in DEMO_FACE_FIXTURE
+    assert b"password" not in DEMO_FACE_FIXTURE.lower()
+    assert DemoFaceVerificationProvider().compare(DOCUMENT, DEMO_FACE_FIXTURE, FaceScenario.MATCH)[0] == FaceOutcome.MATCH
 
 
 def test_match_result_persists_without_biometric_material(db: Session) -> None:

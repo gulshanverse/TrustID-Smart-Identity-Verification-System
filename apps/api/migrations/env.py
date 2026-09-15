@@ -3,12 +3,18 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from app.core.config import get_settings
 from app.db import models  # noqa: F401
 from app.db.session import Base
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Keep Alembic aligned with the API's environment-backed database configuration.
+# Alembic's ConfigParser requires percent signs to be escaped when storing URLs.
+database_url = get_settings().database_url
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 

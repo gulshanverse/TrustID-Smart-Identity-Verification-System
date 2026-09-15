@@ -138,20 +138,18 @@ class S3ObjectStorage(ObjectStorage):
 
     def _log_storage_error(self, operation: str, key: str, exc: Exception) -> None:
         logger.warning(
-            "s3_storage_operation_failed",
-            extra={
-                "operation": operation,
-                "storage_key": key,
-                "error_type": type(exc).__name__,
-                "error_message": self._safe_error_message(exc),
-            },
+            "s3_storage_operation_failed operation=%s storage_key=%s error_type=%s error=%s",
+            operation,
+            key,
+            type(exc).__name__,
+            self._safe_error_message(exc),
         )
 
     def put(self, key: str, content: bytes, mime_type: str) -> StoredObject:
         import hashlib
         checksum = hashlib.sha256(content).hexdigest()
         try:
-            self.client.put_object(Bucket=self.bucket, Key=key, Body=BytesIO(content), ContentType=mime_type, ServerSideEncryption="AES256")
+            self.client.put_object(Bucket=self.bucket, Key=key, Body=BytesIO(content), ContentType=mime_type)
         except Exception as exc:
             self._log_storage_error("put", key, exc)
             raise

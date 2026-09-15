@@ -50,6 +50,7 @@ class SqlAlchemyIntelligenceRepository:
         model = DocumentValidationModel(id=result.id, document_id=result.document_id, status=result.status.value, provider=result.provider, provider_version=result.provider_version, summary=result.summary, created_at=datetime.fromisoformat(result.created_at), updated_at=datetime.fromisoformat(result.updated_at))
         model.findings.extend(DocumentValidationFindingModel(id=uuid4(), validation_id=result.id, name=item.name, severity=item.severity.value, passed=item.passed, explanation=item.explanation, reference=item.reference) for item in result.findings)
         self.db.add(model)
+        self.db.flush()
         document = self.db.get(DocumentModel, result.document_id)
         if document is not None:
             self.db.add(AuditEventModel(event_type="DOCUMENT_VALIDATION_COMPLETED", actor_id=actor_id, verification_id=document.verification_id, document_id=result.document_id, validation_id=result.id, provider=result.provider, status=result.status.value, created_at=datetime.now(UTC)))
@@ -58,6 +59,7 @@ class SqlAlchemyIntelligenceRepository:
         model = RiskAssessmentModel(id=result.id, verification_id=result.verification_id, status=result.status.value, risk_score=result.risk_score, risk_level=result.risk_level.value, recommendation=result.recommendation, confidence=result.confidence, summary=result.summary, assessment_version=result.assessment_version, created_at=datetime.fromisoformat(result.created_at), updated_at=datetime.fromisoformat(result.updated_at))
         model.factors.extend(RiskFactorModel(id=uuid4(), risk_assessment_id=result.id, factor_name=item.name, source_module=item.source_module, severity=item.severity.value, contribution=item.contribution, explanation=item.explanation, evidence_reference=item.evidence_reference, created_at=datetime.now(UTC)) for item in result.factors)
         self.db.add(model)
+        self.db.flush()
         document = self.get_document_for_verification_owner(result.verification_id, actor_id)
         self.db.add(AuditEventModel(event_type="RISK_ASSESSMENT_COMPLETED", actor_id=actor_id, verification_id=result.verification_id, document_id=None if document is None else document.id, risk_assessment_id=result.id, status=result.status.value, created_at=datetime.now(UTC)))
 

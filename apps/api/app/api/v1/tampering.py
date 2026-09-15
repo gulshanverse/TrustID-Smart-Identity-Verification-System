@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_permission
@@ -15,12 +16,14 @@ from app.api.tampering_schemas import (
 from app.core.config import get_settings
 from app.db.session import get_db
 from app.domain.auth import Permission
+from app.domain.documents import safe_exception_message
 from app.domain.tampering import DemoTamperingProvider, TamperingResult
 from app.repositories.tampering_repository import SqlAlchemyTamperingRepository
 from app.services.auth_service import AuthUser
 from app.services.tampering_service import TamperingService
 
 router = APIRouter(prefix="/documents", tags=["tampering"])
+logger = logging.getLogger("trustid.tampering.api")
 
 
 def to_response(result: TamperingResult) -> TamperingResponse:
@@ -28,7 +31,7 @@ def to_response(result: TamperingResult) -> TamperingResponse:
 
 
 @router.post("/{document_id}/tampering", response_model=TamperingResponse, status_code=status.HTTP_201_CREATED)
-def analyze(document_id: UUID, request: TamperingRequest, user: AuthUser = Depends(require_permission(Permission.VERIFICATION_WORKFLOW)), db: Session = Depends(get_db)) -> TamperingResponse:
+def analyze(document_id: UUID, request: TamperingRequest, http_request: Request, user: AuthUser = Depends(require_permission(Permission.VERIFICATION_WORKFLOW)), db: Session = Depends(get_db)) -> TamperingResponse:
     from app.main import storage
     if get_settings().tampering_provider.lower() != "demo":
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="The configured tampering provider is unavailable.")
@@ -38,7 +41,14 @@ def analyze(document_id: UUID, request: TamperingRequest, user: AuthUser = Depen
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except RuntimeError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        logger.warning(
+            "tampering_processing_failed operation=analyze document_id=%s request_id=%s error_type=%s error_message=%s",
+            document_id,
+            getattr(http_request.state, "request_id", "unavailable"),
+            type(exc).__name__,
+            safe_exception_message(exc),
+        )
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Technical tampering analysis could not be completed.") from exc
 
 
 @router.get("/{document_id}/tampering", response_model=TamperingResponse)

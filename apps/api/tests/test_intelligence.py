@@ -5,7 +5,15 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from app.db.models import AuditEventModel, Base, RiskAssessmentModel, VerificationModel
+from app.db.models import (
+    AuditEventModel,
+    Base,
+    FaceVerificationModel,
+    OCRResultModel,
+    RiskAssessmentModel,
+    TamperingResultModel,
+    VerificationModel,
+)
 from app.domain.documents import (
     DocumentLifecycle,
     DocumentRecord,
@@ -101,7 +109,12 @@ def test_verification_orchestration_persists_risk_and_audit_events(db: Session) 
     assert result.risk.risk_score == sum(factor.contribution for factor in result.risk.factors)
     stored = db.scalar(select(RiskAssessmentModel).where(RiskAssessmentModel.id == result.risk.id))
     assert stored is not None
+    assert db.scalar(select(OCRResultModel).where(OCRResultModel.document_id == document.id)) is not None
+    assert db.scalar(select(TamperingResultModel).where(TamperingResultModel.document_id == document.id)) is not None
+    assert db.scalar(select(FaceVerificationModel).where(FaceVerificationModel.document_id == document.id)) is not None
     events = db.scalars(select(AuditEventModel).where(AuditEventModel.verification_id == verification.id)).all()
+    event_types = {event.event_type for event in events}
+    assert {"OCR_COMPLETED", "TAMPERING_COMPLETED", "FACE_VERIFICATION_COMPLETED", "DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED"} <= event_types
     assert [event.event_type for event in events][-4:] == ["DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED"] or events[-1].event_type == "VERIFICATION_ANALYSIS_COMPLETED"
 
 

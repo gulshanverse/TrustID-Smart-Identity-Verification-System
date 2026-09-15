@@ -60,6 +60,7 @@ class SqlAlchemyTamperingRepository:
             finding_model.evidence.extend(TamperingEvidenceModel(id=uuid4(), tampering_finding_id=finding.id, evidence_type=evidence.evidence_type, page=evidence.page, region=evidence.region, description=evidence.description, source_reference=evidence.source_reference, technical_signal=evidence.technical_signal, confidence=evidence.confidence) for evidence in finding.evidence)
             model.findings.append(finding_model)
         self.db.add(model)
+        self.db.flush()
         self.add_audit("TAMPERING_COMPLETED", actor_id, result.document_id, result.status.value, result.id, result.provider)
 
     def get_latest_for_owner(self, document_id: UUID, owner_id: UUID) -> TamperingResult | None:

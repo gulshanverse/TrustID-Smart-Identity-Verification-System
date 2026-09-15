@@ -70,6 +70,10 @@ class AuthService:
         if token:
             self._sessions.pop(token, None)
 
+    def rebind_session(self, token: str | None, user_id: UUID) -> None:
+        if token:
+            self._sessions[token] = user_id
+
     def to_safe_user(self, user: AuthUser) -> SafeUser:
         permissions = sorted(permissions_for_roles(user.roles), key=lambda permission: permission.value)
         return SafeUser(id=user.id, email=user.email, display_name=user.display_name, roles=sorted(user.roles, key=lambda role: role.value), permissions=permissions, is_active=user.is_active)

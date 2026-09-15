@@ -5,6 +5,7 @@ from typing import Protocol
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import AuditEventModel, DocumentModel, User, VerificationModel
@@ -37,16 +38,27 @@ class SqlAlchemyDocumentRepository:
         self.db = db
 
     def create_verification(self, owner_id: UUID, email: str, display_name: str) -> VerificationRecord:
-        # The current auth service is intentionally in-process. Keep the existing users
-        # table consistent so the verification foreign key remains valid during development.
-        if self.db.get(User, owner_id) is None:
-            self.db.add(User(id=owner_id, email=email, display_name=display_name, password_hash="managed-by-auth-service", is_active=True))
-            self.db.flush()
+        # AuthService IDs are transient, so reconcile them with the durable user by ID
+        # first and normalized email second before creating any foreign-key records.
+        persistent_user = self.db.get(User, owner_id)
+        if persistent_user is None:
+            persistent_user = self.db.scalar(select(User).where(User.email == email.strip().lower()))
+        if persistent_user is None:
+            persistent_user = User(id=owner_id, email=email.strip().lower(), display_name=display_name, password_hash="managed-by-auth-service", is_active=True)
+            self.db.add(persistent_user)
+            try:
+                self.db.flush()
+            except IntegrityError:
+                # A concurrent request may have inserted the same email after the lookup.
+                self.db.rollback()
+                persistent_user = self.db.scalar(select(User).where(User.email == email.strip().lower()))
+                if persistent_user is None:
+                    raise
         now = datetime.now(UTC)
-        model = VerificationModel(id=uuid4(), owner_id=owner_id, status="PENDING", created_at=now)
+        model = VerificationModel(id=uuid4(), owner_id=persistent_user.id, status="PENDING", created_at=now)
         self.db.add(model)
         self.db.flush()
-        self.db.add(AuditEventModel(event_type="VERIFICATION_CREATED", actor_id=owner_id, verification_id=model.id, document_id=None, status="CREATED", created_at=now))
+        self.db.add(AuditEventModel(event_type="VERIFICATION_CREATED", actor_id=persistent_user.id, verification_id=model.id, document_id=None, status="CREATED", created_at=now))
         self.db.commit()
         return VerificationRecord(model.id, model.owner_id, _iso(now))
 

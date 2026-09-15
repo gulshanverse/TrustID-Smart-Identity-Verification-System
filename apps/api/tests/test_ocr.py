@@ -14,6 +14,7 @@ from app.services.document_service import DocumentService
 from app.services.ocr_service import OCRService
 
 DEMO_PDF = b"%PDF-1.7\nTRUSTID-DEMO-OCR: fictional fixture"
+FRONTEND_DEMO_FIXTURE = "%PDF-1.7\nTRUSTID-DEMO-OCR: FICTIONAL SAMPLE — NOT A REAL IDENTITY DOCUMENT\nTRUSTID-TAMPERING:CLEAN\nTRUSTID-FACE:DOCUMENT\nTrustID simulated passport fixture\n".encode()
 
 
 @pytest.fixture
@@ -126,3 +127,16 @@ def test_demo_fixture_output_is_explicitly_fictional_and_contains_no_real_pii(db
     assert all("@" not in field.value for field in fields)
     assert all("password" not in field.value.lower() for field in fields)
     assert "FICTIONAL DEMO APPLICANT" in raw_text
+
+
+def test_frontend_demo_fixture_passes_document_validation_and_all_demo_markers(db: Session) -> None:
+    actor = uuid4()
+    storage = InMemoryObjectStorage()
+    document_service = DocumentService(storage, SqlAlchemyDocumentRepository(db))
+    verification = document_service.create_verification(actor, "fixture@example.test", "Fixture Officer")
+    document = document_service.upload(verification.id, actor, "trustid-fictional-demo-passport.pdf", "application/pdf", FRONTEND_DEMO_FIXTURE, DocumentType.PASSPORT)
+
+    ocr = OCRService(storage, SqlAlchemyOCRRepository(db), DemoOCRProvider()).process(document.id, actor)
+    assert ocr.status == OCRStatus.COMPLETED
+    assert b"TRUSTID-TAMPERING:CLEAN" in storage.get(document.storage_key)
+    assert b"TRUSTID-FACE:DOCUMENT" in storage.get(document.storage_key)

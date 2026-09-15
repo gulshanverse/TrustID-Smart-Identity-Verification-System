@@ -91,7 +91,7 @@ def test_verification_orchestration_persists_risk_and_audit_events(db: Session) 
     storage = InMemoryObjectStorage()
     documents = DocumentService(storage, SqlAlchemyDocumentRepository(db))
     verification = documents.create_verification(actor, f"phase9-{actor}@example.test", "Officer")
-    content = b"%PDF-1.7\nTRUSTID-DEMO-OCR:demo\nTRUSTID-TAMPERING:CLEAN\nTRUSTID-FACE:DOCUMENT"
+    content = "%PDF-1.7\nTRUSTID-DEMO-OCR: FICTIONAL SAMPLE — NOT A REAL IDENTITY DOCUMENT\nTRUSTID-TAMPERING:CLEAN\nTRUSTID-FACE:DOCUMENT\nTrustID simulated passport fixture\n".encode()
     document = documents.upload(verification.id, actor, "demo.pdf", "application/pdf", content, DocumentType.PASSPORT)
     OCRService(storage, SqlAlchemyOCRRepository(db), __import__("app.domain.ocr", fromlist=["DemoOCRProvider"]).DemoOCRProvider()).process(document.id, actor)
     TamperingService(storage, SqlAlchemyTamperingRepository(db), __import__("app.domain.tampering", fromlist=["DemoTamperingProvider"]).DemoTamperingProvider()).process(document.id, actor)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
@@ -14,6 +15,8 @@ from app.db.models import (
     OCRResultModel,
     VerificationModel,
 )
+from app.domain.document_quality import DocumentQuality, QualityStatus
+from app.domain.mrz import MRZChecksum, MRZResult
 from app.domain.ocr import OCREvidence, OCRField, OCRResult, OCRStatus
 
 
@@ -26,7 +29,12 @@ def _result(model: OCRResultModel) -> OCRResult:
     for field in model.fields:
         evidence = field.evidence[0] if field.evidence else None
         fields.append(OCRField(field.name, field.value, field.normalized_value, field.confidence, field.source_text, None if evidence is None else OCREvidence(evidence.page, evidence.text, evidence.start_offset, evidence.end_offset, evidence.line_index)))
-    return OCRResult(model.id, model.document_id, OCRStatus(model.status), model.raw_text, model.language, model.overall_confidence, model.provider, model.provider_version, tuple(fields), _iso(model.created_at), _iso(model.updated_at))
+    quality_data = cast(dict[str, object], model.quality or {})
+    quality = DocumentQuality(QualityStatus(str(quality_data.get("status", "REVIEW"))), int(cast(int | str, quality_data.get("score", 0))), cast(dict[str, str | float | int], quality_data.get("signals", {})), tuple(cast(list[str], quality_data.get("reasons", []))))
+    mrz_data = cast(dict[str, object], model.mrz or {})
+    checksums = tuple(MRZChecksum(str(item.get("field", "")), str(item.get("value", "")), cast(str | None, item.get("check_digit")), cast(bool | None, item.get("valid"))) for item in cast(list[dict[str, object]], mrz_data.get("mrz_checksum_results", [])))
+    mrz = MRZResult(bool(mrz_data.get("mrz_detected", False)), bool(mrz_data.get("mrz_valid", False)), str(mrz_data.get("mrz_raw_text", "")), str(mrz_data.get("mrz_normalized_text", "")), cast(dict[str, str | None], mrz_data.get("mrz_fields", {})), checksums, cast(str | None, mrz_data.get("reason")))
+    return OCRResult(model.id, model.document_id, OCRStatus(model.status), model.raw_text, model.language, model.overall_confidence, model.provider, model.provider_version, tuple(fields), _iso(model.created_at), _iso(model.updated_at), quality, mrz, tuple(model.field_consistency or ()))
 
 
 class SqlAlchemyOCRRepository:
@@ -49,7 +57,7 @@ class SqlAlchemyOCRRepository:
         self.db.add(AuditEventModel(event_type=event_type, actor_id=actor_id, verification_id=document.verification_id, document_id=document_id, ocr_result_id=result_id, provider=provider, status=status, created_at=datetime.now(UTC)))
 
     def add_result(self, result: OCRResult, actor_id: UUID) -> None:
-        model = OCRResultModel(id=result.id, document_id=result.document_id, status=result.status.value, raw_text=result.raw_text, language=result.language, overall_confidence=result.overall_confidence, provider=result.provider, provider_version=result.provider_version, created_at=datetime.fromisoformat(result.created_at), updated_at=datetime.fromisoformat(result.updated_at))
+        model = OCRResultModel(id=result.id, document_id=result.document_id, status=result.status.value, raw_text=result.raw_text, language=result.language, overall_confidence=result.overall_confidence, provider=result.provider, provider_version=result.provider_version, quality=result.quality.as_dict(), mrz=result.mrz.as_dict(), field_consistency=list(result.field_consistency), created_at=datetime.fromisoformat(result.created_at), updated_at=datetime.fromisoformat(result.updated_at))
         for field in result.fields:
             field_model = OCRFieldModel(id=uuid4(), ocr_result_id=result.id, name=field.name, value=field.value, normalized_value=field.normalized_value, confidence=field.confidence, source_text=field.source_text)
             if field.evidence is not None:

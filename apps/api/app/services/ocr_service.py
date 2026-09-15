@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
+from app.domain.document_quality import QualityStatus, assess_image_quality, assess_pdf_quality
 from app.domain.documents import DocumentLifecycle, DocumentRecord, DocumentType, ObjectStorage
-from app.domain.ocr import OCRProvider, OCRResult, OCRStatus, new_ocr_result_id
+from app.domain.ocr import OCRProvider, OCRResult, OCRStatus, intelligence_for, new_ocr_result_id
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
 
 
@@ -23,9 +24,13 @@ class OCRService:
         try:
             content = self.storage.get(document.storage_key)
             typed_document = DocumentRecord(document.id, document.verification_id, DocumentType(document.document_type), document.original_filename, document.storage_key, document.mime_type, document.file_size, document.checksum_sha256, DocumentLifecycle(document.status), document.created_at.isoformat(), document.updated_at.isoformat())
+            quality = assess_pdf_quality(content) if typed_document.mime_type == "application/pdf" else assess_image_quality(content)
+            if self.provider.name == "REAL AI / PRODUCTION" and quality.status == QualityStatus.FAILED:
+                raise ValueError("The document did not pass the production OCR quality gate.")
             raw_text, fields, confidence, language = self.provider.process(typed_document, content)
+            _, mrz, consistency = intelligence_for(typed_document, content, raw_text, fields)
             now = datetime.now(UTC).isoformat()
-            result = OCRResult(new_ocr_result_id(), document_id, OCRStatus.COMPLETED, raw_text, language, confidence, self.provider.name, self.provider.version, fields, now, now)
+            result = OCRResult(new_ocr_result_id(), document_id, OCRStatus.COMPLETED, raw_text, language, confidence, self.provider.name, self.provider.version, fields, now, now, quality, mrz, consistency)
             self.repository.add_result(result, actor_id)
             self.repository.mark_ocr_complete(document_id)
             self.repository.commit()

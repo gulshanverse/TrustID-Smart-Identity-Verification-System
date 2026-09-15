@@ -33,4 +33,6 @@ After upload, `/console/verify` shows `READY FOR ANALYSIS` and a real `Start OCR
 
 Run `alembic upgrade head` from `apps/api` after starting the existing PostgreSQL/MinIO stack. The test suite uses SQLite for repository integration tests and an in-memory object storage fake only as an isolated test adapter. The default provider is deterministic demo mode, not production OCR. To process a demo fixture, the stored PDF must contain the explicit marker; arbitrary uploads intentionally return a safe OCR failure until an authorized real provider adapter is configured.
 
+`OCR_PROVIDER=production` selects the local Tesseract adapter, bounded quality assessment, passport TD3 MRZ parsing/checksums, and OCR/MRZ consistency metadata. See [`docs/production-ocr.md`](production-ocr.md) for dependency, memory, and deployment requirements. Production mode never silently falls back to simulated extraction.
+
 Tampering detection, image forensics, face verification, biometric processing, risk scoring, government integrations, blockchain, fraud classification, automatic decisions, and officer decision automation are not implemented in Phase 6.

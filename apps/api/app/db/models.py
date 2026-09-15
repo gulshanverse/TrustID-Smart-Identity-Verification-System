@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -81,6 +81,9 @@ class OCRResultModel(Base):
     overall_confidence: Mapped[float] = mapped_column(nullable=False)
     provider: Mapped[str] = mapped_column(String(128), nullable=False)
     provider_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    quality: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
+    mrz: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
+    field_consistency: Mapped[list[dict[str, str | None]] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     document: Mapped[DocumentModel] = relationship(back_populates="ocr_results")

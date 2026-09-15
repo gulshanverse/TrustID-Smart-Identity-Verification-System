@@ -34,6 +34,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_deployment_security(self) -> "Settings":
+        if self.ocr_provider.lower() not in {"demo", "production"}:
+            raise ValueError("OCR_PROVIDER must be either demo or production.")
         if self.app_env.lower() == "production":
             required = {
                 "DATABASE_URL": self.database_url,

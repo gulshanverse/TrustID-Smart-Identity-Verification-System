@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.domain.ocr import OCRStatus
 
@@ -34,5 +34,8 @@ class OCRResponse(BaseModel):
     provider: str
     provider_version: str
     fields: list[OCRFieldResponse]
+    quality: dict[str, object] | None = None
+    mrz: dict[str, object] | None = None
+    field_consistency: list[dict[str, str | None]] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

@@ -15,6 +15,25 @@ MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024
 logger = logging.getLogger("trustid.storage")
 
 
+def safe_error_message(exc: BaseException) -> str:
+    message = str(exc)
+    message = re.sub(r"https?://[^\s'\"]+", "<url>", message)
+    message = re.sub(r"(?i)(access[_-]?key|secret[_-]?key|token|password|authorization|cookie|database[_-]?url|redis[_-]?url)[=:][^\s,;]+", r"\1=<redacted>", message)
+    message = re.sub(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", "<email>", message)
+    return message[:240] or "storage operation failed"
+
+
+def safe_exception_message(exc: BaseException) -> str:
+    messages: list[str] = []
+    current: BaseException | None = exc
+    seen: set[int] = set()
+    while current is not None and id(current) not in seen and len(messages) < 3:
+        seen.add(id(current))
+        messages.append(f"{type(current).__name__}: {safe_error_message(current)}")
+        current = current.__cause__ or current.__context__
+    return " | ".join(messages)
+
+
 class DocumentType(StrEnum):
     PASSPORT = "PASSPORT"
     VISA = "VISA"
@@ -129,20 +148,13 @@ class S3ObjectStorage(ObjectStorage):
             config=Config(s3={"addressing_style": "path"}),
         )
 
-    @staticmethod
-    def _safe_error_message(exc: Exception) -> str:
-        message = str(exc)
-        message = re.sub(r"https?://[^\s'\"]+", "<url>", message)
-        message = re.sub(r"(?i)(access[_-]?key|secret[_-]?key|token|password|authorization)[=:][^\s,;]+", r"\1=<redacted>", message)
-        return message[:240] or "storage operation failed"
-
     def _log_storage_error(self, operation: str, key: str, exc: Exception) -> None:
         logger.warning(
-            "s3_storage_operation_failed operation=%s storage_key=%s error_type=%s error=%s",
+            "s3_storage_operation_failed operation=%s storage_key=%s error_type=%s error_message=%s",
             operation,
             key,
             type(exc).__name__,
-            self._safe_error_message(exc),
+            safe_exception_message(exc),
         )
 
     def put(self, key: str, content: bytes, mime_type: str) -> StoredObject:

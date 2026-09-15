@@ -11,7 +11,7 @@ from app.api.dependencies import require_permission
 from app.api.document_schemas import DocumentResponse, VerificationResponse
 from app.db.session import get_db
 from app.domain.auth import Permission
-from app.domain.documents import DocumentRecord, DocumentType
+from app.domain.documents import DocumentRecord, DocumentType, safe_exception_message
 from app.repositories.document_repository import SqlAlchemyDocumentRepository
 from app.services.auth_service import AuthUser
 from app.services.document_service import DocumentService
@@ -61,10 +61,11 @@ async def upload_document(
         if isinstance(exc, HTTPException):
             raise
         logger.warning(
-            "document_upload_failed operation=upload verification_id=%s request_id=%s error_type=%s",
+            "document_upload_failed operation=upload verification_id=%s request_id=%s error_type=%s error_message=%s",
             verification_id,
             getattr(request.state, "request_id", "unavailable"),
             type(exc).__name__,
+            safe_exception_message(exc),
         )
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Document storage is unavailable in this environment.") from exc
 

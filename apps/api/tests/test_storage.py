@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app import main
-from app.domain.documents import S3ObjectStorage
+from app.domain.documents import S3ObjectStorage, safe_exception_message
 
 
 def test_s3_storage_forces_path_style_addressing() -> None:
@@ -84,3 +84,19 @@ def test_production_storage_initialization_does_not_downgrade_silently(monkeypat
     monkeypatch.setattr(main, "settings", settings)
     with patch.object(main, "S3ObjectStorage", side_effect=RuntimeError("client unavailable")), pytest.raises(RuntimeError, match="Production object storage"):
         main.initialize_storage()
+
+
+def test_exception_chain_preserves_sanitized_root_cause() -> None:
+    try:
+        raise ValueError("database_url=postgresql://user:password@db.example.test/app user@example.test")
+    except ValueError as cause:
+        wrapped = RuntimeError("Document metadata could not be saved.")
+        wrapped.__cause__ = cause
+
+    message = safe_exception_message(wrapped)
+
+    assert "RuntimeError: Document metadata could not be saved." in message
+    assert "ValueError:" in message
+    assert "password" not in message
+    assert "user@example.test" not in message
+    assert "postgresql://" not in message

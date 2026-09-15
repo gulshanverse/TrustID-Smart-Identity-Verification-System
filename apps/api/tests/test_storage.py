@@ -1,7 +1,9 @@
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from app import main
 from app.domain.documents import S3ObjectStorage
 
 
@@ -68,3 +70,17 @@ def test_s3_storage_logs_sanitized_operation_errors(caplog: pytest.LogCaptureFix
     assert "access-key" not in record.message
     assert "secret-key" not in record.message
     assert "https://" not in record.message
+
+
+def test_production_storage_initialization_does_not_downgrade_silently(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = SimpleNamespace(
+        app_env="production",
+        object_storage_endpoint="https://storage.example.test/s3",
+        object_storage_bucket="trustid-documents",
+        object_storage_access_key="configured-access-key",
+        object_storage_secret_key="configured-secret-key",
+        object_storage_region="ap-south-1",
+    )
+    monkeypatch.setattr(main, "settings", settings)
+    with patch.object(main, "S3ObjectStorage", side_effect=RuntimeError("client unavailable")), pytest.raises(RuntimeError, match="Production object storage"):
+        main.initialize_storage()

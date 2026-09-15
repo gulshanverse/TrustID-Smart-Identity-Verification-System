@@ -65,10 +65,40 @@ def test_login_success_returns_safe_user_and_cookie(client: TestClient) -> None:
 
 
 def test_production_settings_require_secure_explicit_cookie_and_cors_configuration() -> None:
+    production = {
+        "app_env": "production",
+        "database_url": "postgresql+psycopg://demo:demo@db.example.test:5432/trustid",
+        "redis_url": "redis://redis.example.test:6379/0",
+        "object_storage_endpoint": "https://storage.example.test/s3",
+        "object_storage_region": "ap-south-1",
+        "object_storage_bucket": "trustid-documents",
+        "object_storage_access_key": "configured-access-key",
+        "object_storage_secret_key": "configured-secret-key",
+        "demo_password": "configured-demo-password",
+        "cors_origins": "https://demo.example.test",
+        "session_cookie_samesite": "none",
+    }
     with pytest.raises(ValueError, match="SESSION_COOKIE_SECURE"):
-        Settings(app_env="production", session_cookie_secure=False)
-    settings = Settings(app_env="production", session_cookie_secure=True, cors_origins="https://demo.example.test", session_cookie_samesite="none")
+        Settings(**production, session_cookie_secure=False)
+    settings = Settings(**production, session_cookie_secure=True)
     assert settings.cors_origin_list == ["https://demo.example.test"]
+
+
+def test_production_settings_reject_local_infrastructure_defaults() -> None:
+    with pytest.raises(ValueError, match="localhost"):
+        Settings(
+            app_env="production",
+            session_cookie_secure=True,
+            database_url="postgresql+psycopg://demo:demo@localhost:5432/trustid",
+            redis_url="redis://redis.example.test:6379/0",
+            object_storage_endpoint="https://storage.example.test/s3",
+            object_storage_region="ap-south-1",
+            object_storage_bucket="trustid-documents",
+            object_storage_access_key="configured-access-key",
+            object_storage_secret_key="configured-secret-key",
+            demo_password="configured-demo-password",
+            cors_origins="https://demo.example.test",
+        )
 
 
 def test_invalid_and_inactive_login_use_generic_error(client: TestClient) -> None:

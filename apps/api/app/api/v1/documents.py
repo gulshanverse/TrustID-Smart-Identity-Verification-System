@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_permission
@@ -16,6 +17,7 @@ from app.services.auth_service import AuthUser
 from app.services.document_service import DocumentService
 
 router = APIRouter(prefix="/verifications", tags=["documents"])
+logger = logging.getLogger("trustid.documents.api")
 
 
 def get_document_service(db: Session = Depends(get_db)) -> DocumentService:
@@ -41,6 +43,7 @@ def create_verification(user: AuthUser = Depends(require_permission(Permission.V
 @router.post("/{verification_id}/documents", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     verification_id: UUID,
+    request: Request,
     document_type: DocumentType = Form(...),
     file: UploadFile = File(...),
     user: AuthUser = Depends(require_permission(Permission.DOCUMENT_CREATE)),
@@ -57,6 +60,12 @@ async def upload_document(
     except Exception as exc:
         if isinstance(exc, HTTPException):
             raise
+        logger.warning(
+            "document_upload_failed operation=upload verification_id=%s request_id=%s error_type=%s",
+            verification_id,
+            getattr(request.state, "request_id", "unavailable"),
+            type(exc).__name__,
+        )
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Document storage is unavailable in this environment.") from exc
 
 

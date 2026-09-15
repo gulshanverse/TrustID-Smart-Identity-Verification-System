@@ -164,3 +164,19 @@ def test_verification_rows_keep_persistent_owner_foreign_key(db: Session) -> Non
     rows = db.scalars(select(VerificationModel).where(VerificationModel.owner_id == persistent_id)).all()
     assert len(rows) == 2
     assert restarted.owner_id == persistent_id
+
+
+def test_restart_login_create_and_upload_uses_persistent_identity(db: Session) -> None:
+    storage = InMemoryObjectStorage()
+    current = service(db, storage)
+    first = current.create_verification(uuid4(), "demo.officer@trustid.local", "Demo Officer")
+    restarted_user = AuthUser(uuid4(), "demo.officer@trustid.local", "Demo Officer", "managed", {Role.OFFICER})
+    reconcile_persistent_identity(restarted_user, db)
+
+    document = service(db, storage).upload(first.id, restarted_user.id, "passport.jpg", "image/jpeg", b"\xff\xd8\xffdemo", DocumentType.PASSPORT)
+
+    assert document.verification_id == first.id
+    assert storage.objects[document.storage_key] == b"\xff\xd8\xffdemo"
+    events = service(db, storage).audit_events()
+    assert events[-1].event_type == "DOCUMENT_UPLOADED"
+    assert events[-1].actor_id == first.owner_id

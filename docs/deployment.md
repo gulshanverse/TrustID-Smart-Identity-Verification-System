@@ -57,6 +57,8 @@ uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 
 Configure the platform health check as `GET /api/v1/health`. It does not require authentication. The API reads database, Redis, storage, provider, CORS, and cookie settings from environment variables.
 
+In `APP_ENV=production`, invalid or unavailable object-storage client initialization fails API startup instead of silently installing an unavailable-storage fallback. This makes Render deployment logs identify configuration/dependency failures before an upload request is attempted. Local development retains the unavailable-storage fallback for environments where MinIO is intentionally not running.
+
 ## Frontend deployment
 
 From `apps/web`, Vercel should use the standard Next.js build and start behavior. Set `NEXT_PUBLIC_API_URL` before the build. Required checks are `npm install`, `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`. The browser no longer falls back to a localhost API URL when the variable is absent; a missing value will therefore fail visibly instead of silently targeting a developer machine.

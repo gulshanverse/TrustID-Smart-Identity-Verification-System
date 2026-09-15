@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlparse
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -34,6 +35,38 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_deployment_security(self) -> "Settings":
         if self.app_env.lower() == "production":
+            required = {
+                "DATABASE_URL": self.database_url,
+                "REDIS_URL": self.redis_url,
+                "OBJECT_STORAGE_ENDPOINT": self.object_storage_endpoint,
+                "OBJECT_STORAGE_REGION": self.object_storage_region,
+                "OBJECT_STORAGE_BUCKET": self.object_storage_bucket,
+                "OBJECT_STORAGE_ACCESS_KEY": self.object_storage_access_key,
+                "OBJECT_STORAGE_SECRET_KEY": self.object_storage_secret_key,
+                "DEMO_PASSWORD": self.demo_password or "",
+            }
+            missing = [name for name, value in required.items() if not value.strip()]
+            if missing:
+                raise ValueError(f"Required production settings are missing: {', '.join(missing)}.")
+            localhost_values = {
+                "DATABASE_URL": self.database_url,
+                "REDIS_URL": self.redis_url,
+                "OBJECT_STORAGE_ENDPOINT": self.object_storage_endpoint,
+            }
+            localhost_names = [
+                name
+                for name, value in localhost_values.items()
+                if urlparse(value).hostname in {"localhost", "127.0.0.1", "::1"}
+            ]
+            if localhost_names:
+                raise ValueError(f"Production settings must not use localhost: {', '.join(localhost_names)}.")
+            endpoint = urlparse(self.object_storage_endpoint)
+            if endpoint.scheme not in {"http", "https"} or not endpoint.hostname:
+                raise ValueError("OBJECT_STORAGE_ENDPOINT must be a valid HTTP(S) URL in production.")
+            if any(value.startswith("replace-with-") for value in (self.object_storage_access_key, self.object_storage_secret_key)):
+                raise ValueError("Production object storage credentials must be configured.")
+            if self.object_storage_access_key == "minioadmin" or self.object_storage_secret_key == "minioadmin":
+                raise ValueError("Production object storage credentials must not use local MinIO defaults.")
             if not self.session_cookie_secure:
                 raise ValueError("SESSION_COOKIE_SECURE must be true when APP_ENV=production.")
             if "*" in self.cors_origin_list:

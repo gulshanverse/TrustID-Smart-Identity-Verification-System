@@ -39,11 +39,28 @@ class UnavailableStorage(ObjectStorage):
         raise RuntimeError("Document storage is not configured in this environment.")
 
 
-storage: ObjectStorage
-try:
-    storage = S3ObjectStorage(settings.object_storage_endpoint, settings.object_storage_bucket, settings.object_storage_access_key, settings.object_storage_secret_key, settings.object_storage_region)
-except (ImportError, RuntimeError):
-    storage = UnavailableStorage()
+def initialize_storage() -> ObjectStorage:
+    try:
+        return S3ObjectStorage(
+            settings.object_storage_endpoint,
+            settings.object_storage_bucket,
+            settings.object_storage_access_key,
+            settings.object_storage_secret_key,
+            settings.object_storage_region,
+        )
+    except Exception as exc:
+        logger.critical(
+            "object_storage_initialization_failed environment=%s error_type=%s",
+            settings.app_env,
+            type(exc).__name__,
+        )
+        if settings.app_env.lower() == "production":
+            raise RuntimeError("Production object storage could not be initialized.") from exc
+        logger.warning("object_storage_unavailable_local_fallback environment=%s", settings.app_env)
+        return UnavailableStorage()
+
+
+storage = initialize_storage()
 
 app = FastAPI(title=settings.app_name, version="0.1.0", docs_url="/docs", redoc_url="/redoc")
 app.add_middleware(
@@ -60,6 +77,7 @@ async def request_context(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
 ) -> Response:
     request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
     try:
         response = await call_next(request)
     except Exception:

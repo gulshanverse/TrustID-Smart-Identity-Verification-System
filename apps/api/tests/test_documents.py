@@ -5,10 +5,12 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import reconcile_persistent_identity
-from app.db.models import Base, User, VerificationModel
+from app.db.models import AuditEventModel, Base, DocumentModel, User, VerificationModel
 from app.domain.auth import Role
 from app.domain.documents import (
     MAX_DOCUMENT_SIZE_BYTES,
+    DocumentLifecycle,
+    DocumentRecord,
     DocumentType,
     InMemoryObjectStorage,
     storage_key,
@@ -101,6 +103,28 @@ def test_database_failure_cleans_up_object(db: Session) -> None:
     with pytest.raises(RuntimeError, match="metadata"):
         current.upload(verification.id, verification.owner_id, "passport.pdf", "application/pdf", PDF, DocumentType.PASSPORT)
     assert storage.objects == {}
+    assert db.scalar(select(func.count()).select_from(DocumentModel)) == 0
+    assert db.scalar(select(func.count()).select_from(AuditEventModel).where(AuditEventModel.event_type == "DOCUMENT_UPLOADED")) == 0
+
+
+def test_document_is_flushed_before_foreign_key_audit_event(db: Session) -> None:
+    owner_id = uuid4()
+    current = service(db)
+    verification = current.create_verification(owner_id, "officer@example.test", "Officer")
+    record = DocumentRecord(
+        uuid4(), verification.id, DocumentType.PASSPORT, "passport.pdf", "verifications/key.pdf",
+        "application/pdf", len(PDF), "checksum", DocumentLifecycle.READY_FOR_ANALYSIS,
+        "2026-01-01T00:00:00+00:00", "2026-01-01T00:00:00+00:00",
+    )
+    repo = SqlAlchemyDocumentRepository(db)
+
+    repo.add_document(record, owner_id)
+
+    assert db.get(DocumentModel, record.id) is not None
+    db.commit()
+    audit = db.scalar(select(AuditEventModel).where(AuditEventModel.document_id == record.id))
+    assert audit is not None
+    assert audit.document_id == record.id
 
 
 def test_new_user_creates_persistent_user_and_verification(db: Session) -> None:

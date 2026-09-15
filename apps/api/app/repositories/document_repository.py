@@ -69,6 +69,7 @@ class SqlAlchemyDocumentRepository:
     def add_document(self, record: DocumentRecord, actor_id: UUID) -> None:
         model = DocumentModel(id=record.id, verification_id=record.verification_id, document_type=record.document_type.value, original_filename=record.original_filename, storage_key=record.storage_key, mime_type=record.mime_type, file_size=record.file_size, checksum_sha256=record.checksum_sha256, status=record.status.value, created_at=datetime.fromisoformat(record.created_at), updated_at=datetime.fromisoformat(record.updated_at))
         self.db.add(model)
+        self.db.flush()
         self.db.add(AuditEventModel(event_type="DOCUMENT_UPLOADED", actor_id=actor_id, verification_id=record.verification_id, document_id=record.id, status=record.status.value, created_at=datetime.fromisoformat(record.created_at)))
 
     def list_documents(self, verification_id: UUID) -> list[DocumentRecord]:

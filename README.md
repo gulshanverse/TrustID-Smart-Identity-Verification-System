@@ -2,6 +2,7 @@
 
 TrustID is an AI-assisted identity and document screening platform for Smart India Hackathon problem statement 26188: **AI-Based Fake Identity & Document Screening System**. The product promise is **Verify. Detect. Protect.** It is decision support for authorized personnel, not an autonomous legal or criminality determination system.
 
+We will make the verification process smarter than ever.
 ## Project status
 
 **PHASE 12 COMPLETE — final hardening and SIH demo readiness.** The repository contains secure ingestion, OCR, technical tampering signals, photo-based demo face comparison, deterministic document validation, idempotent verification-level orchestration, persisted lifecycle state, explainable persisted risk factors, auditable officer case operations, consistently filtered UTC analytics, paginated audit exploration, and deterministic verification/case PDF reports. These capabilities summarize existing evidence; they do not establish legal identity, fraud, criminality, immigration eligibility, or an automatic decision.

@@ -35,7 +35,7 @@ def configured_provider() -> DemoFaceVerificationProvider | ProductionFaceVerifi
     settings = get_settings()
     if settings.face_provider.lower() == "demo":
         return DemoFaceVerificationProvider()
-    return ProductionFaceVerificationProvider(settings.face_model_path, settings.face_model_sha256)
+    return ProductionFaceVerificationProvider(settings.face_model_path, settings.face_model_sha256, settings.face_detector, settings.face_detector_model_path, settings.face_detector_model_sha256, settings.face_detector_score_threshold)
 
 
 @router.post("/{document_id}/face-verification", response_model=FaceVerificationResponse, status_code=status.HTTP_201_CREATED)

@@ -1,0 +1,151 @@
+reference_id,presented_id,same_identity,quality,face_count,similarity,decision,failure,processing_ms
+person_001,person_001,True,ERROR,,,ERROR,ValueError,518.8654899998255
+person_001,person_001,True,ERROR,,,ERROR,ValueError,315.25475600028585
+person_001,person_001,True,ERROR,,,ERROR,ValueError,323.0230720000691
+person_001,person_001,True,ERROR,,,ERROR,ValueError,288.9587679997021
+person_001,person_001,True,ERROR,,,ERROR,ValueError,286.89427500012243
+person_001,person_001,True,ERROR,,,ERROR,ValueError,301.2888399998701
+person_001,person_002,False,ERROR,,,ERROR,ValueError,298.57719099982205
+person_001,person_002,False,ERROR,,,ERROR,ValueError,298.2472220001
+person_001,person_002,False,ERROR,,,ERROR,ValueError,305.89179200023864
+person_001,person_002,False,ERROR,,,ERROR,ValueError,305.2684730000692
+person_001,person_002,False,ERROR,,,ERROR,ValueError,308.9850619999197
+person_001,person_002,False,ERROR,,,ERROR,ValueError,317.9405799996857
+person_001,person_003,False,ERROR,,,ERROR,ValueError,344.18443200002
+person_001,person_003,False,ERROR,,,ERROR,ValueError,341.66062299982514
+person_001,person_003,False,ERROR,,,ERROR,ValueError,293.65839900037827
+person_001,person_003,False,ERROR,,,ERROR,ValueError,295.223127999634
+person_001,person_003,False,ERROR,,,ERROR,ValueError,304.0095679998558
+person_001,person_003,False,ERROR,,,ERROR,ValueError,302.9418269998132
+person_001,person_004,False,ERROR,,,ERROR,ValueError,304.67532300008315
+person_001,person_004,False,ERROR,,,ERROR,ValueError,296.1457299998074
+person_001,person_004,False,ERROR,,,ERROR,ValueError,306.7596109999613
+person_001,person_004,False,ERROR,,,ERROR,ValueError,312.3339630001283
+person_001,person_004,False,ERROR,,,ERROR,ValueError,330.24420199990345
+person_001,person_004,False,ERROR,,,ERROR,ValueError,309.122828999989
+person_001,person_005,False,ERROR,,,ERROR,ValueError,299.1750660003163
+person_001,person_005,False,ERROR,,,ERROR,ValueError,297.7568690002954
+person_001,person_005,False,ERROR,,,ERROR,ValueError,302.6621819999491
+person_001,person_005,False,ERROR,,,ERROR,ValueError,283.4040819998336
+person_001,person_005,False,ERROR,,,ERROR,ValueError,314.31036799995127
+person_001,person_005,False,ERROR,,,ERROR,ValueError,294.02803099992525
+person_002,person_001,False,LOW_QUALITY,1,,UNAVAILABLE,Face region is too blurry.,523.5281380000743
+person_002,person_001,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,525.0870999998369
+person_002,person_001,False,READY,1,0.5996182560920715,MATCH,,970.0142030001189
+person_002,person_001,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,583.1490710002072
+person_002,person_001,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,522.9707930002405
+person_002,person_001,False,READY,1,0.40198031067848206,MATCH,,631.4688299999034
+person_002,person_002,True,LOW_QUALITY,1,,UNAVAILABLE,Face region is too blurry.,598.0260880000969
+person_002,person_002,True,READY,1,0.802061140537262,MATCH,,1170.2217090000886
+person_002,person_002,True,READY,1,0.6380460262298584,MATCH,,1068.173821000073
+person_002,person_002,True,READY,1,0.9721367359161377,MATCH,,982.742330000292
+person_002,person_002,True,MULTIPLE_FACES,3,,REVIEW,Exactly one face is required; no face was selected.,532.2230570000102
+person_002,person_002,True,READY,1,0.5254138708114624,MATCH,,822.3348179999448
+person_002,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,822.7298169999813
+person_002,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,589.9519059998966
+person_002,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,558.8995850002902
+person_002,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,541.0498449996339
+person_002,person_003,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,538.9071020003939
+person_002,person_003,False,READY,1,0.2746565341949463,MISMATCH,,656.55876000028
+person_002,person_004,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,631.8865060002281
+person_002,person_004,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,545.4248609999013
+person_002,person_004,False,READY,1,0.3050604462623596,REVIEW,,1009.7712760002651
+person_002,person_004,False,READY,1,0.3487494885921478,REVIEW,,1027.868656999999
+person_002,person_004,False,MULTIPLE_FACES,3,,REVIEW,Exactly one face is required; no face was selected.,545.1473359999
+person_002,person_004,False,READY,1,0.22523453831672668,MISMATCH,,665.034299999661
+person_002,person_005,False,LOW_QUALITY,1,,UNAVAILABLE,Face region is too blurry.,631.2425219998659
+person_002,person_005,False,READY,1,0.4623570442199707,MATCH,,1023.0067789998429
+person_002,person_005,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,550.2310049996595
+person_002,person_005,False,READY,1,0.4506424069404602,MATCH,,1317.9040449999775
+person_002,person_005,False,READY,1,0.4469255208969116,MATCH,,1116.8793560000267
+person_002,person_005,False,READY,1,0.3644079566001892,MATCH,,679.3457379999381
+person_003,person_001,False,ERROR,,,ERROR,ValueError,381.2729159999435
+person_003,person_001,False,ERROR,,,ERROR,ValueError,315.2676770000653
+person_003,person_001,False,ERROR,,,ERROR,ValueError,308.7736910001695
+person_003,person_001,False,ERROR,,,ERROR,ValueError,336.67335100017226
+person_003,person_001,False,ERROR,,,ERROR,ValueError,360.4074419999961
+person_003,person_001,False,ERROR,,,ERROR,ValueError,365.45692599975155
+person_003,person_002,False,ERROR,,,ERROR,ValueError,305.510126000172
+person_003,person_002,False,ERROR,,,ERROR,ValueError,293.8819220003097
+person_003,person_002,False,ERROR,,,ERROR,ValueError,296.5078479996919
+person_003,person_002,False,ERROR,,,ERROR,ValueError,314.63221700005306
+person_003,person_002,False,ERROR,,,ERROR,ValueError,323.32795599995734
+person_003,person_002,False,ERROR,,,ERROR,ValueError,308.1258130000606
+person_003,person_003,True,ERROR,,,ERROR,ValueError,320.6384770001023
+person_003,person_003,True,ERROR,,,ERROR,ValueError,315.053110000008
+person_003,person_003,True,ERROR,,,ERROR,ValueError,294.36624500021935
+person_003,person_003,True,ERROR,,,ERROR,ValueError,291.8778379998912
+person_003,person_003,True,ERROR,,,ERROR,ValueError,329.74475699984396
+person_003,person_003,True,ERROR,,,ERROR,ValueError,320.1982790001239
+person_003,person_004,False,ERROR,,,ERROR,ValueError,296.99612300009903
+person_003,person_004,False,ERROR,,,ERROR,ValueError,311.2312200000815
+person_003,person_004,False,ERROR,,,ERROR,ValueError,309.6664930003499
+person_003,person_004,False,ERROR,,,ERROR,ValueError,299.8588899999959
+person_003,person_004,False,ERROR,,,ERROR,ValueError,314.02534500011825
+person_003,person_004,False,ERROR,,,ERROR,ValueError,305.50945000004504
+person_003,person_005,False,ERROR,,,ERROR,ValueError,299.8654500001976
+person_003,person_005,False,ERROR,,,ERROR,ValueError,294.6432769999774
+person_003,person_005,False,ERROR,,,ERROR,ValueError,306.83647500018196
+person_003,person_005,False,ERROR,,,ERROR,ValueError,309.0952349998588
+person_003,person_005,False,ERROR,,,ERROR,ValueError,306.5629490001811
+person_003,person_005,False,ERROR,,,ERROR,ValueError,312.50309500001094
+person_004,person_001,False,ERROR,,,ERROR,ValueError,309.77311400010876
+person_004,person_001,False,ERROR,,,ERROR,ValueError,301.85654200022327
+person_004,person_001,False,ERROR,,,ERROR,ValueError,304.8318400001335
+person_004,person_001,False,ERROR,,,ERROR,ValueError,326.182893999885
+person_004,person_001,False,ERROR,,,ERROR,ValueError,300.304671000049
+person_004,person_001,False,ERROR,,,ERROR,ValueError,302.16328699998485
+person_004,person_002,False,ERROR,,,ERROR,ValueError,309.7990100000061
+person_004,person_002,False,ERROR,,,ERROR,ValueError,313.18246299997554
+person_004,person_002,False,ERROR,,,ERROR,ValueError,303.99749600019277
+person_004,person_002,False,ERROR,,,ERROR,ValueError,303.7129059998733
+person_004,person_002,False,ERROR,,,ERROR,ValueError,297.8335339998921
+person_004,person_002,False,ERROR,,,ERROR,ValueError,298.082020000038
+person_004,person_003,False,ERROR,,,ERROR,ValueError,302.29018900035953
+person_004,person_003,False,ERROR,,,ERROR,ValueError,295.1386869999624
+person_004,person_003,False,ERROR,,,ERROR,ValueError,296.4810769999531
+person_004,person_003,False,ERROR,,,ERROR,ValueError,320.5688379998719
+person_004,person_003,False,ERROR,,,ERROR,ValueError,321.0381019998749
+person_004,person_003,False,ERROR,,,ERROR,ValueError,315.02787499994156
+person_004,person_004,True,ERROR,,,ERROR,ValueError,304.0113220004059
+person_004,person_004,True,ERROR,,,ERROR,ValueError,310.90087399979893
+person_004,person_004,True,ERROR,,,ERROR,ValueError,302.1724949999225
+person_004,person_004,True,ERROR,,,ERROR,ValueError,301.58182199966177
+person_004,person_004,True,ERROR,,,ERROR,ValueError,294.69418000007863
+person_004,person_004,True,ERROR,,,ERROR,ValueError,297.6889679998749
+person_004,person_005,False,ERROR,,,ERROR,ValueError,286.56949399965015
+person_004,person_005,False,ERROR,,,ERROR,ValueError,295.48005300011937
+person_004,person_005,False,ERROR,,,ERROR,ValueError,324.5831009999165
+person_004,person_005,False,ERROR,,,ERROR,ValueError,298.0168199997024
+person_004,person_005,False,ERROR,,,ERROR,ValueError,293.9840069998354
+person_004,person_005,False,ERROR,,,ERROR,ValueError,299.55784799994944
+person_005,person_001,False,LOW_QUALITY,1,,UNAVAILABLE,Face region is too blurry.,531.9530010001472
+person_005,person_001,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,527.3616140002559
+person_005,person_001,False,READY,1,0.462080717086792,MATCH,,956.3043309999557
+person_005,person_001,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,519.2714800000431
+person_005,person_001,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,539.2218349998075
+person_005,person_001,False,READY,1,0.2697514593601227,MISMATCH,,647.5827129997924
+person_005,person_002,False,LOW_QUALITY,1,,UNAVAILABLE,Face region is too blurry.,605.7916909999221
+person_005,person_002,False,READY,1,0.48410937190055847,MATCH,,1002.6890740000454
+person_005,person_002,False,READY,1,0.26408398151397705,MISMATCH,,945.4354989998137
+person_005,person_002,False,READY,1,0.4285464882850647,MATCH,,945.8620199998222
+person_005,person_002,False,MULTIPLE_FACES,3,,REVIEW,Exactly one face is required; no face was selected.,523.1138350000037
+person_005,person_002,False,READY,1,0.2499144971370697,MISMATCH,,629.1560579998077
+person_005,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,571.0438220003198
+person_005,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,516.8703389999791
+person_005,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,527.2210620000806
+person_005,person_003,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,532.1802849998676
+person_005,person_003,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,564.5389149999573
+person_005,person_003,False,READY,1,0.3114129304885864,REVIEW,,633.4209579999879
+person_005,person_004,False,MULTIPLE_FACES,2,,REVIEW,Exactly one face is required; no face was selected.,571.4390430002823
+person_005,person_004,False,NO_FACE,0,,UNAVAILABLE,No face was detected.,527.0463910001126
+person_005,person_004,False,READY,1,0.3265188932418823,REVIEW,,994.5265179999296
+person_005,person_004,False,READY,1,0.25617924332618713,MISMATCH,,972.9007030000503
+person_005,person_004,False,MULTIPLE_FACES,3,,REVIEW,Exactly one face is required; no face was selected.,566.8692279996321
+person_005,person_004,False,READY,1,0.257283091545105,MISMATCH,,665.5568940000194
+person_005,person_005,True,LOW_QUALITY,1,,UNAVAILABLE,Face region is too blurry.,562.6194159999613
+person_005,person_005,True,READY,1,0.9263441562652588,MATCH,,919.5461429999341
+person_005,person_005,True,NO_FACE,0,,UNAVAILABLE,No face was detected.,561.0158099998444
+person_005,person_005,True,READY,1,0.9513314962387085,MATCH,,961.0545790001197
+person_005,person_005,True,READY,1,0.873929500579834,MATCH,,910.2374249996501
+person_005,person_005,True,READY,1,0.3578641414642334,REVIEW,,594.6486970001388

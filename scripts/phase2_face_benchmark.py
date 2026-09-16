@@ -3,14 +3,12 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
 import statistics
 import time
 from pathlib import Path
 
 import cv2
 import numpy as np
-
 from app.domain.face import ProductionFaceVerificationProvider
 
 
@@ -59,6 +57,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="models/face_recognition_sface_2021dec.onnx")
     parser.add_argument("--expected-sha256", default=None)
+    parser.add_argument("--detector", default="haar", choices=("haar", "yunet"))
+    parser.add_argument("--detector-model", default=None)
+    parser.add_argument("--detector-sha256", default=None)
+    parser.add_argument("--detector-score", default=0.9, type=float)
     parser.add_argument("--corpus", default="benchmarks/synthetic_faces")
     parser.add_argument("--output", default="benchmarks/phase2_face_benchmark.json")
     args = parser.parse_args()
@@ -73,7 +75,7 @@ def main() -> None:
         cv2.imwrite(str(corpus / identity / "reference.jpg"), cv2.imread(str(reference)))
 
     start_load = time.perf_counter()
-    provider = ProductionFaceVerificationProvider(args.model, args.expected_sha256)
+    provider = ProductionFaceVerificationProvider(args.model, args.expected_sha256, args.detector, args.detector_model, args.detector_sha256, args.detector_score)
     load_ms = (time.perf_counter() - start_load) * 1000
     embedding_dimension = None
     rows: list[dict[str, object]] = []
@@ -98,11 +100,11 @@ def main() -> None:
                         (genuine_scores if same_identity else impostor_scores).append(similarity)
                         (genuine_decisions if same_identity else impostor_decisions).append(decision)
                     rows.append({"reference_id": reference_id, "presented_id": presented_id, "same_identity": same_identity, "quality": quality.value, "face_count": face_count, "similarity": similarity, "decision": decision, "failure": failure, "processing_ms": elapsed_ms})
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     rows.append({"reference_id": reference_id, "presented_id": presented_id, "same_identity": same_identity, "quality": "ERROR", "face_count": None, "similarity": None, "decision": "ERROR", "failure": type(exc).__name__, "processing_ms": (time.perf_counter() - started) * 1000})
     embedding_dimension = getattr(provider, "embedding_dimension", None)
     timings = [float(row["processing_ms"]) for row in rows]
-    payload = {"label": "CONTROLLED SYNTHETIC VALIDATION", "model": {"filename": Path(args.model).name, "size_bytes": Path(args.model).stat().st_size, "sha256": provider.model_sha256, "opencv_version": cv2.__version__, "runtime": "OpenCV DNN FaceRecognizerSF on CPU", "input": "BGR crop resized to 112x112; Haar single-face detection; no landmark alignment", "embedding_dimension": embedding_dimension}, "load_ms": load_ms, "timing_ms": summary(timings, []), "error_rows": sum(row["decision"] == "ERROR" for row in rows), "thresholds": {"match": provider.threshold, "review": provider.review_threshold}, "genuine": summary(genuine_scores, genuine_decisions), "impostor": summary(impostor_scores, impostor_decisions), "rows": rows}
+    payload = {"label": "CONTROLLED SYNTHETIC VALIDATION", "model": {"filename": Path(args.model).name, "size_bytes": Path(args.model).stat().st_size, "sha256": provider.model_sha256, "detector": args.detector, "detector_model": Path(args.detector_model).name if args.detector_model else None, "detector_sha256": getattr(provider, "detector_model_sha256", None), "opencv_version": cv2.__version__, "runtime": "OpenCV DNN FaceRecognizerSF on CPU", "input": "YuNet 5-point alignCrop" if args.detector == "yunet" else "BGR crop resized to 112x112; Haar detection", "embedding_dimension": embedding_dimension}, "load_ms": load_ms, "timing_ms": summary(timings, []), "error_rows": sum(row["decision"] == "ERROR" for row in rows), "thresholds": {"match": provider.threshold, "review": provider.review_threshold}, "genuine": summary(genuine_scores, genuine_decisions), "impostor": summary(impostor_scores, impostor_decisions), "rows": rows}
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, indent=2))

@@ -118,14 +118,14 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
     """
 
     name = "REAL AI / PRODUCTION"
-    version = "OpenCV SFace 2021-12 + Haar detector / algorithm v1"
-    algorithm = "SFace cosine similarity with normalized 112x112 face crops"
+    version = "OpenCV SFace 2021-12 + configurable detector / algorithm v2"
+    algorithm = "SFace cosine similarity with OpenCV-aligned or normalized 112x112 face crops"
     model_version = "face_recognition_sface_2021dec.onnx"
     threshold = 0.363
     review_threshold = 0.30
     min_face_pixels = 80 * 80
 
-    def __init__(self, model_path: str | Path, expected_sha256: str | None = None) -> None:
+    def __init__(self, model_path: str | Path, expected_sha256: str | None = None, detector: str = "haar", detector_model_path: str | Path | None = None, detector_expected_sha256: str | None = None, detector_score_threshold: float = 0.9) -> None:
         self.model_path = Path(model_path)
         if not self.model_path.is_file():
             raise RuntimeError("The configured production face model is unavailable.")
@@ -135,6 +135,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         if expected_sha256 and actual_sha256.lower() != expected_sha256.lower():
             raise RuntimeError("The configured production face model failed integrity verification.")
         self.model_sha256 = actual_sha256
+        self.detector_mode = detector.lower()
         try:
             cv2: Any = __import__("cv2")
         except ImportError as exc:  # pragma: no cover - environment-specific
@@ -144,6 +145,23 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         self._detector = cv2.CascadeClassifier(str(cascade_path))
         if self._detector.empty():
             raise RuntimeError("The production face detector is unavailable.")
+        self._yunet = None
+        if self.detector_mode == "yunet":
+            if detector_model_path is None:
+                raise RuntimeError("The configured YuNet detector model is unavailable.")
+            detector_path = Path(detector_model_path)
+            if not detector_path.is_file():
+                raise RuntimeError("The configured YuNet detector model is unavailable.")
+            detector_hash = hashlib.sha256(detector_path.read_bytes()).hexdigest()
+            if detector_expected_sha256 and detector_hash.lower() != detector_expected_sha256.lower():
+                raise RuntimeError("The configured YuNet detector model failed integrity verification.")
+            try:
+                self._yunet = cv2.FaceDetectorYN.create(str(detector_path), "", (320, 320), detector_score_threshold, 0.3, 5000)
+            except Exception as exc:
+                raise RuntimeError("The configured YuNet detector could not be loaded.") from exc
+            self.detector_model_sha256 = detector_hash
+        elif self.detector_mode != "haar":
+            raise RuntimeError("The configured face detector is unsupported.")
         try:
             self._recognizer = cv2.face
         except Exception as exc:
@@ -164,6 +182,19 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         return image
 
     def _faces(self, image: Any) -> list[tuple[int, int, int, int]]:
+        if self._yunet is not None:
+            height, width = image.shape[:2]
+            self._yunet.setInputSize((width, height))
+            _, detected = self._yunet.detect(image)
+            self._face_rows = {}
+            if detected is None:
+                return []
+            faces = []
+            for row in detected:
+                face = (int(row[0]), int(row[1]), int(row[2]), int(row[3]))
+                faces.append(face)
+                self._face_rows[face] = row
+            return faces
         gray = self._cv2.cvtColor(image, self._cv2.COLOR_BGR2GRAY)
         faces = self._detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=12, minSize=(40, 40))
         return [(int(face[0]), int(face[1]), int(face[2]), int(face[3])) for face in faces]
@@ -183,10 +214,13 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
             return FaceQuality.LOW_QUALITY, "Face exposure or contrast is insufficient."
         return FaceQuality.READY, "Face size, sharpness, brightness, and contrast passed the quality gate."
 
-    def _embedding(self, image: Any, face: tuple[int, int, int, int]) -> Any:
+    def _embedding(self, image: Any, face: tuple[int, int, int, int], landmark_row: Any = None) -> Any:
         x, y, width, height = face
         crop = image[y:y + height, x:x + width]
-        aligned = self._cv2.resize(crop, (112, 112), interpolation=self._cv2.INTER_AREA)
+        if self._yunet is not None:
+            aligned = self._recognizer.alignCrop(image, landmark_row)
+        else:
+            aligned = self._cv2.resize(crop, (112, 112), interpolation=self._cv2.INTER_AREA)
         embedding = self._recognizer.feature(aligned)
         np: Any = __import__("numpy")
         vector = np.asarray(embedding, dtype=np.float32).reshape(-1)
@@ -216,9 +250,11 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
             outcome = FaceOutcome.REVIEW if presented_quality == FaceQuality.MULTIPLE_FACES else FaceOutcome.UNAVAILABLE
             return outcome, None, None, "Face verification could not produce a reliable comparison.", presented_reason, presented_quality, presented_count
         faces = self._faces(document_image)
+        reference_rows = dict(self._face_rows) if self._yunet is not None else {}
         presented_faces = self._faces(presented_image)
-        reference_embedding = self._embedding(document_image, faces[0])
-        presented_embedding = self._embedding(presented_image, presented_faces[0])
+        presented_rows = dict(self._face_rows) if self._yunet is not None else {}
+        reference_embedding = self._embedding(document_image, faces[0], reference_rows.get(faces[0]))
+        presented_embedding = self._embedding(presented_image, presented_faces[0], presented_rows.get(presented_faces[0]))
         similarity = float(reference_embedding @ presented_embedding)
         if similarity >= self.threshold:
             outcome, summary = FaceOutcome.MATCH, "Biometric similarity meets the configured verification threshold; officer review remains required."

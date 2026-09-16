@@ -6,9 +6,6 @@ import time
 from pathlib import Path
 from uuid import uuid4
 
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-
 from app.db.models import AuditEventModel, Base, FaceVerificationModel
 from app.domain.documents import DocumentType, InMemoryObjectStorage
 from app.domain.face import ProductionFaceVerificationProvider
@@ -16,6 +13,8 @@ from app.repositories.document_repository import SqlAlchemyDocumentRepository
 from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.services.document_service import DocumentService
 from app.services.face_service import FaceVerificationService
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 
 def run() -> dict[str, object]:

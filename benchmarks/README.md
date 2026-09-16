@@ -15,3 +15,5 @@ PYTHONPATH=apps/api python3 scripts/phase2_face_benchmark.py \
 `phase2_face_benchmark.json` and `.csv` are measured outputs from the current local runtime. These are **controlled synthetic validation measurements only**, not real-world biometric accuracy, FAR/FRR, fairness, government-grade performance, or population-level evidence.
 
 The current corpus demonstrates genuine-pair matching but also exposes substantial impostor overlap. That limitation is intentionally retained in the report; the benchmark is not used to claim production readiness.
+
+Phase 2.2 also records a baseline Haar run and a YuNet landmark-aligned run. The aligned run uses `--detector yunet`, the provisioned YuNet SHA-256, and `--detector-score 0.6` for this synthetic-corpus experiment. Threshold and ROC-style metrics are generated with `scripts/phase2_threshold_analysis.py`. YuNet alignment improved the scored-subset ranking but reduced coverage materially, so Haar remains the default and YuNet remains an explicit experiment rather than an automatic production replacement.

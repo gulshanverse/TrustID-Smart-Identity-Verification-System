@@ -61,7 +61,7 @@ def test_pdf_quality_rejects_malformed_and_unbounded_documents() -> None:
 
 
 def test_production_provider_extracts_without_demo_markers(monkeypatch) -> None:
-    fake_tesseract = SimpleNamespace(image_to_string=lambda image, config: MRZ)
+    fake_tesseract = SimpleNamespace(image_to_string=lambda image, config, timeout: MRZ, image_to_data=lambda image, config, timeout, output_type: {"conf": ["90", "80"], "text": ["FICTIONAL", "SAMPLE"]}, Output=SimpleNamespace(DICT="dict"))
     monkeypatch.setitem(sys.modules, "pytesseract", fake_tesseract)
     image = Image.new("RGB", (800, 600), color="white")
     output = BytesIO()
@@ -70,5 +70,5 @@ def test_production_provider_extracts_without_demo_markers(monkeypatch) -> None:
     assert "TRUSTID-DEMO-OCR" not in raw_text
     assert raw_text == MRZ
     assert {field.name for field in fields} >= {"full_name", "passport_number", "date_of_birth", "expiry_date", "gender"}
-    assert confidence == 0.5
+    assert confidence == 0.85
     assert language == "eng"

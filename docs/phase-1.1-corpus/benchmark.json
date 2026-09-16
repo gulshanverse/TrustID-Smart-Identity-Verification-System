@@ -1,0 +1,325 @@
+{
+  "tesseract": null,
+  "max_rss_kb": 98532,
+  "records": [
+    {
+      "fixture": "TEST-01-clean.png",
+      "bytes": 50874,
+      "quality": {
+        "status": "REVIEW",
+        "score": 38,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 249.79,
+          "contrast": 2.37
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 23.76,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-02-low_resolution.png",
+      "bytes": 26366,
+      "quality": {
+        "status": "FAILED",
+        "score": 5,
+        "signals": {
+          "width": 500,
+          "height": 312,
+          "brightness": 249.58,
+          "contrast": 1.67
+        },
+        "reasons": [
+          "Image resolution may be insufficient for reliable OCR.",
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 2.74,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-03-rotated.png",
+      "bytes": 75054,
+      "quality": {
+        "status": "REVIEW",
+        "score": 42,
+        "signals": {
+          "width": 1652,
+          "height": 1084,
+          "brightness": 250.34,
+          "contrast": 2.12
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 26.24,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-04-low_contrast.png",
+      "bytes": 48694,
+      "quality": {
+        "status": "REVIEW",
+        "score": 37,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 249.18,
+          "contrast": 0.29
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 23.98,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-05-overexposed.png",
+      "bytes": 37640,
+      "quality": {
+        "status": "REVIEW",
+        "score": 38,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 250.51,
+          "contrast": 2.13
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 22.84,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-06-underexposed.png",
+      "bytes": 45791,
+      "quality": {
+        "status": "REVIEW",
+        "score": 46,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 61.71,
+          "contrast": 0.59
+        },
+        "reasons": [
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 23.94,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-07-blurred.png",
+      "bytes": 104788,
+      "quality": {
+        "status": "REVIEW",
+        "score": 37,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 249.79,
+          "contrast": 0.8
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 26.7,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-08-compressed.png",
+      "bytes": 47229,
+      "quality": {
+        "status": "REVIEW",
+        "score": 38,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 247.79,
+          "contrast": 2.18
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 12.63,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-09-mismatch.png",
+      "bytes": 50874,
+      "quality": {
+        "status": "REVIEW",
+        "score": 38,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 249.79,
+          "contrast": 2.37
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 22.43,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-10-valid-mrz.txt",
+      "bytes": 89,
+      "quality": null,
+      "mrz_detected": true,
+      "mrz_valid": true,
+      "processing_ms": 0.26,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-11-invalid-mrz.txt",
+      "bytes": 89,
+      "quality": null,
+      "mrz_detected": true,
+      "mrz_valid": false,
+      "processing_ms": 0.07,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-12-malformed-mrz.txt",
+      "bytes": 26,
+      "quality": null,
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 0.02,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-13-no-mrz.png",
+      "bytes": 50874,
+      "quality": {
+        "status": "REVIEW",
+        "score": 38,
+        "signals": {
+          "width": 1600,
+          "height": 1000,
+          "brightness": 249.79,
+          "contrast": 2.37
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 22.48,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-14-text.pdf",
+      "bytes": 1524,
+      "quality": {
+        "status": "GOOD",
+        "score": 85,
+        "signals": {
+          "page_count": 1,
+          "extractable_text_length": 197
+        },
+        "reasons": []
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 439.14,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-15-multipage.pdf",
+      "bytes": 2754,
+      "quality": {
+        "status": "GOOD",
+        "score": 85,
+        "signals": {
+          "page_count": 3,
+          "extractable_text_length": 591
+        },
+        "reasons": []
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 3.42,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-16-malformed.pdf",
+      "bytes": 18,
+      "quality": {
+        "status": "FAILED",
+        "score": 0,
+        "signals": {},
+        "reasons": [
+          "PDF could not be safely read: PdfStreamError."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 0.25,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    },
+    {
+      "fixture": "TEST-17-pathological.png",
+      "bytes": 33247,
+      "quality": {
+        "status": "REVIEW",
+        "score": 45,
+        "signals": {
+          "width": 3000,
+          "height": 3000,
+          "brightness": 255.0,
+          "contrast": 0.0
+        },
+        "reasons": [
+          "Image may be overexposed or affected by glare.",
+          "Image contrast is low."
+        ]
+      },
+      "mrz_detected": false,
+      "mrz_valid": false,
+      "processing_ms": 133.95,
+      "ocr": "NOT_RUN (tesseract unavailable)"
+    }
+  ]
+}

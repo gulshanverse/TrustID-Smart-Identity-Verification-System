@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import Any
 from uuid import UUID, uuid4
 
 from app.domain.document_quality import (
@@ -88,6 +89,7 @@ class DemoOCRProvider(OCRProvider):
 class ProductionOCRProvider(OCRProvider):
     name = "REAL AI / PRODUCTION"
     version = "tesseract-local-1"
+    timeout_seconds = 15
 
     def process(self, document: DocumentRecord, content: bytes) -> tuple[str, tuple[OCRField, ...], float, str]:
         try:
@@ -99,11 +101,13 @@ class ProductionOCRProvider(OCRProvider):
             if document.mime_type == "application/pdf":
                 from pdf2image import convert_from_bytes
 
-                pages = convert_from_bytes(content, dpi=220, first_page=1, last_page=5, thread_count=1)
-                raw_text = "\n".join(pytesseract.image_to_string(page, config="--psm 6") for page in pages)
+                pages = convert_from_bytes(content, dpi=220, first_page=1, last_page=5, thread_count=1, timeout=self.timeout_seconds)
+                outputs = [self._ocr_image(pytesseract, page) for page in pages]
             else:
                 with Image.open(__import__("io").BytesIO(content)) as image:
-                    raw_text = pytesseract.image_to_string(image, config="--psm 6")
+                    outputs = [self._ocr_image(pytesseract, image)]
+            raw_text = "\n".join(item[0] for item in outputs)
+            confidences = [item[1] for item in outputs if item[1] is not None]
         except Exception as exc:
             raise RuntimeError(f"Local OCR engine failed: {type(exc).__name__}.") from exc
         fields = list(_extract_conservative_fields(raw_text, document.document_type))
@@ -118,8 +122,16 @@ class ProductionOCRProvider(OCRProvider):
                 value = mrz.fields.get(mrz_name)
                 if value and field_name not in existing:
                     fields.append(OCRField(field_name, value, value.upper(), 0.95 if mrz.valid else 0.6, "MRZ"))
-        confidence = 0.0 if not raw_text.strip() else 0.5
+        confidence = 0.0 if not raw_text.strip() else sum(confidences) / len(confidences) if confidences else 0.0
         return raw_text, tuple(fields), confidence, "eng"
+
+    def _ocr_image(self, pytesseract: Any, image: Any) -> tuple[str, float | None]:
+        text = pytesseract.image_to_string(image, config="--psm 6", timeout=self.timeout_seconds)
+        if not hasattr(pytesseract, "image_to_data"):
+            return text, None
+        data = pytesseract.image_to_data(image, config="--psm 6", timeout=self.timeout_seconds, output_type=pytesseract.Output.DICT)
+        values = [float(value) for value, token in zip(data.get("conf", []), data.get("text", []), strict=False) if token.strip() and float(value) >= 0]
+        return text, None if not values else sum(values) / len(values) / 100
 
 
 def _extract_conservative_fields(raw_text: str, document_type: str) -> tuple[OCRField, ...]:

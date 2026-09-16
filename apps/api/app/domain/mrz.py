@@ -77,6 +77,7 @@ def parse_td3(text: str) -> MRZResult:
         MRZChecksum("date_of_birth", second[13:19], second[19], _check_digit(second[13:19], second[19])),
         MRZChecksum("expiry_date", second[21:27], second[27], _check_digit(second[21:27], second[27])),
         MRZChecksum("personal_number", second[28:42], second[42], _check_digit(second[28:42], second[42])),
+        MRZChecksum("composite", second[0:10] + second[13:20] + second[21:28] + second[28:43], second[43], _check_digit(second[0:10] + second[13:20] + second[21:28] + second[28:43], second[43])),
     )
     fields = {"document_type": first[0], "issuing_state": first[2:5], "surname": surname, "given_names": given, "document_number": second[0:9].replace("<", ""), "nationality": second[10:13], "date_of_birth": _date(second[13:19]), "sex": None if second[20] == "<" else second[20], "expiry_date": _date(second[21:27], expiry=True), "personal_number": second[28:42].replace("<", "") or None}
     return MRZResult(True, all(item.valid is True for item in checks), "\n".join(candidates[index] for index in range(len(candidates)) if _normalize_line(candidates[index]) in {first, second}), f"{first}\n{second}", fields, checks)

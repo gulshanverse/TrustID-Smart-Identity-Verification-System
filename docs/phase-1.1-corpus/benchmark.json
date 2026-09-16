@@ -1,9 +1,10 @@
 {
-  "tesseract": null,
-  "max_rss_kb": 98532,
+  "tesseract": "/usr/bin/tesseract",
+  "max_rss_kb": 341676,
   "records": [
     {
       "fixture": "TEST-01-clean.png",
+      "format": "png",
       "bytes": 50874,
       "quality": {
         "status": "REVIEW",
@@ -19,13 +20,100 @@
           "Image contrast is low."
         ]
       },
-      "mrz_detected": false,
-      "mrz_valid": false,
-      "processing_ms": 23.76,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "mrz_detected": true,
+      "mrz_valid": true,
+      "processing_ms": 2727.22,
+      "peak_rss_kb": 102092,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TO000001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C36UT07408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TO000001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        },
+        {
+          "name": "full_name",
+          "value": "ERIKSSON ANNA MARIA",
+          "confidence": 0.95
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.9136,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.5304347826086957,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": [
+        {
+          "field": "document_number",
+          "value": "L898902C3",
+          "check_digit": "6",
+          "valid": true
+        },
+        {
+          "field": "date_of_birth",
+          "value": "740812",
+          "check_digit": "2",
+          "valid": true
+        },
+        {
+          "field": "expiry_date",
+          "value": "120415",
+          "check_digit": "9",
+          "valid": true
+        },
+        {
+          "field": "personal_number",
+          "value": "ZE184226B<<<<<",
+          "check_digit": "1",
+          "valid": true
+        },
+        {
+          "field": "composite",
+          "value": "L898902C3674081221204159ZE184226B<<<<<1",
+          "check_digit": "0",
+          "valid": true
+        }
+      ]
     },
     {
       "fixture": "TEST-02-low_resolution.png",
+      "format": "png",
       "bytes": 26366,
       "quality": {
         "status": "FAILED",
@@ -44,11 +132,62 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 2.74,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 462.49,
+      "peak_rss_kb": 102092,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\n\u2018AARAV TESTER\n\nPASSPORT NO: T0000001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nPUTOERIKSSON<cANNACHARTACeceacececcececcee\n\\Le98902\u00a236UT07408122F12041597E184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "T0000001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": true,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 5,
+        "total": 5,
+        "accuracy": 1.0
+      },
+      "ocr_confidence": 0.7956,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.6869565217391305,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": []
     },
     {
       "fixture": "TEST-03-rotated.png",
+      "format": "png",
       "bytes": 75054,
       "quality": {
         "status": "REVIEW",
@@ -66,11 +205,62 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 26.24,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 925.79,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\n\nAARAV TESTER\n\nPASSPORT NO: Too000001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\npcUTOERTKSSON<<ANNACMARIAS<<<<<<65<5 555559\n| 392902C36U707408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "Too000001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.8203703703703704,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.6347826086956522,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": []
     },
     {
       "fixture": "TEST-04-low_contrast.png",
+      "format": "png",
       "bytes": 48694,
       "quality": {
         "status": "REVIEW",
@@ -88,11 +278,62 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 23.98,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 933.34,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TOOO0001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nP<UTOERIKSSON<<ANNA<MARI A<<<<<<<<<<<<<<<<<<<\nL898902C36UT07408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TOOO0001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.8784615384615384,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.5478260869565217,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": []
     },
     {
       "fixture": "TEST-05-overexposed.png",
+      "format": "png",
       "bytes": 37640,
       "quality": {
         "status": "REVIEW",
@@ -108,13 +349,100 @@
           "Image contrast is low."
         ]
       },
-      "mrz_detected": false,
-      "mrz_valid": false,
-      "processing_ms": 22.84,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "mrz_detected": true,
+      "mrz_valid": true,
+      "processing_ms": 907.28,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TOOO0001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<c<ccccccc<<<\nL898902C36UT07408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TOOO0001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        },
+        {
+          "name": "full_name",
+          "value": "ERIKSSON ANNA MARIA       C CCCCCCC",
+          "confidence": 0.95
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.8776,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.6173913043478261,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": [
+        {
+          "field": "document_number",
+          "value": "L898902C3",
+          "check_digit": "6",
+          "valid": true
+        },
+        {
+          "field": "date_of_birth",
+          "value": "740812",
+          "check_digit": "2",
+          "valid": true
+        },
+        {
+          "field": "expiry_date",
+          "value": "120415",
+          "check_digit": "9",
+          "valid": true
+        },
+        {
+          "field": "personal_number",
+          "value": "ZE184226B<<<<<",
+          "check_digit": "1",
+          "valid": true
+        },
+        {
+          "field": "composite",
+          "value": "L898902C3674081221204159ZE184226B<<<<<1",
+          "check_digit": "0",
+          "valid": true
+        }
+      ]
     },
     {
       "fixture": "TEST-06-underexposed.png",
+      "format": "png",
       "bytes": 45791,
       "quality": {
         "status": "REVIEW",
@@ -129,13 +457,100 @@
           "Image contrast is low."
         ]
       },
-      "mrz_detected": false,
-      "mrz_valid": false,
-      "processing_ms": 23.94,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "mrz_detected": true,
+      "mrz_valid": true,
+      "processing_ms": 925.38,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TOOO0001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C36UT07408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TOOO0001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        },
+        {
+          "name": "full_name",
+          "value": "ERIKSSON ANNA MARIA",
+          "confidence": 0.95
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.8968,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.5478260869565217,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": [
+        {
+          "field": "document_number",
+          "value": "L898902C3",
+          "check_digit": "6",
+          "valid": true
+        },
+        {
+          "field": "date_of_birth",
+          "value": "740812",
+          "check_digit": "2",
+          "valid": true
+        },
+        {
+          "field": "expiry_date",
+          "value": "120415",
+          "check_digit": "9",
+          "valid": true
+        },
+        {
+          "field": "personal_number",
+          "value": "ZE184226B<<<<<",
+          "check_digit": "1",
+          "valid": true
+        },
+        {
+          "field": "composite",
+          "value": "L898902C3674081221204159ZE184226B<<<<<1",
+          "check_digit": "0",
+          "valid": true
+        }
+      ]
     },
     {
       "fixture": "TEST-07-blurred.png",
+      "format": "png",
       "bytes": 104788,
       "quality": {
         "status": "REVIEW",
@@ -153,11 +568,57 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 26.7,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 967.51,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TOO00001\n\nNATIONALITY. UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\n\nP<UTOERI KS SON<<ANMA<MAR I Ax <<a aaaennndnnnceee\n(898902C 36UT07408122F 1204159ZE 1842268<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TOO00001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": false,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 3,
+        "total": 5,
+        "accuracy": 0.6
+      },
+      "ocr_confidence": 0.7338235294117647,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.6782608695652174,
+        "wer": 0.8076923076923077
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": []
     },
     {
       "fixture": "TEST-08-compressed.png",
+      "format": "png",
       "bytes": 47229,
       "quality": {
         "status": "REVIEW",
@@ -173,13 +634,100 @@
           "Image contrast is low."
         ]
       },
-      "mrz_detected": false,
-      "mrz_valid": false,
-      "processing_ms": 12.63,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "mrz_detected": true,
+      "mrz_valid": true,
+      "processing_ms": 892.17,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TOO000001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C36UT07408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TOO000001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        },
+        {
+          "name": "full_name",
+          "value": "ERIKSSON ANNA MARIA",
+          "confidence": 0.95
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.9059999999999999,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.5391304347826087,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": [
+        {
+          "field": "document_number",
+          "value": "L898902C3",
+          "check_digit": "6",
+          "valid": true
+        },
+        {
+          "field": "date_of_birth",
+          "value": "740812",
+          "check_digit": "2",
+          "valid": true
+        },
+        {
+          "field": "expiry_date",
+          "value": "120415",
+          "check_digit": "9",
+          "valid": true
+        },
+        {
+          "field": "personal_number",
+          "value": "ZE184226B<<<<<",
+          "check_digit": "1",
+          "valid": true
+        },
+        {
+          "field": "composite",
+          "value": "L898902C3674081221204159ZE184226B<<<<<1",
+          "check_digit": "0",
+          "valid": true
+        }
+      ]
     },
     {
       "fixture": "TEST-09-mismatch.png",
+      "format": "png",
       "bytes": 50874,
       "quality": {
         "status": "REVIEW",
@@ -195,40 +743,151 @@
           "Image contrast is low."
         ]
       },
-      "mrz_detected": false,
-      "mrz_valid": false,
-      "processing_ms": 22.43,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "mrz_detected": true,
+      "mrz_valid": true,
+      "processing_ms": 1012.32,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TO000001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C36UT07408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TO000001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        },
+        {
+          "name": "full_name",
+          "value": "ERIKSSON ANNA MARIA",
+          "confidence": 0.95
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.9136,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.5304347826086957,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": [
+        {
+          "field": "document_number",
+          "value": "L898902C3",
+          "check_digit": "6",
+          "valid": true
+        },
+        {
+          "field": "date_of_birth",
+          "value": "740812",
+          "check_digit": "2",
+          "valid": true
+        },
+        {
+          "field": "expiry_date",
+          "value": "120415",
+          "check_digit": "9",
+          "valid": true
+        },
+        {
+          "field": "personal_number",
+          "value": "ZE184226B<<<<<",
+          "check_digit": "1",
+          "valid": true
+        },
+        {
+          "field": "composite",
+          "value": "L898902C3674081221204159ZE184226B<<<<<1",
+          "check_digit": "0",
+          "valid": true
+        }
+      ]
     },
     {
       "fixture": "TEST-10-valid-mrz.txt",
+      "format": "txt",
       "bytes": 89,
       "quality": null,
       "mrz_detected": true,
       "mrz_valid": true,
-      "processing_ms": 0.26,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 0.23,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": false,
+      "ocr_text": null,
+      "structured_fields": [],
+      "field_accuracy": null,
+      "ocr_confidence": null,
+      "error": null
     },
     {
       "fixture": "TEST-11-invalid-mrz.txt",
+      "format": "txt",
       "bytes": 89,
       "quality": null,
       "mrz_detected": true,
       "mrz_valid": false,
-      "processing_ms": 0.07,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 0.12,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": false,
+      "ocr_text": null,
+      "structured_fields": [],
+      "field_accuracy": null,
+      "ocr_confidence": null,
+      "error": null
     },
     {
       "fixture": "TEST-12-malformed-mrz.txt",
+      "format": "txt",
       "bytes": 26,
       "quality": null,
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 0.02,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 0.14,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": false,
+      "ocr_text": null,
+      "structured_fields": [],
+      "field_accuracy": null,
+      "ocr_confidence": null,
+      "error": null
     },
     {
       "fixture": "TEST-13-no-mrz.png",
+      "format": "png",
       "bytes": 50874,
       "quality": {
         "status": "REVIEW",
@@ -244,13 +903,100 @@
           "Image contrast is low."
         ]
       },
-      "mrz_detected": false,
-      "mrz_valid": false,
-      "processing_ms": 22.48,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "mrz_detected": true,
+      "mrz_valid": true,
+      "processing_ms": 954.41,
+      "peak_rss_kb": 104524,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\nAARAV TESTER\n\nPASSPORT NO: TO000001\n\nNATIONALITY: UTO\n\nDATE OF BIRTH: 1995-01-01\n\nSEX: M\n\nEXPIRY DATE: 2035-01-01\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C36UT07408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [
+        {
+          "name": "passport_number",
+          "value": "TO000001",
+          "confidence": 0.5
+        },
+        {
+          "name": "date_of_birth",
+          "value": "1995-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "expiry_date",
+          "value": "2035-01-01",
+          "confidence": 0.5
+        },
+        {
+          "name": "nationality",
+          "value": "UTO",
+          "confidence": 0.5
+        },
+        {
+          "name": "gender",
+          "value": "M",
+          "confidence": 0.5
+        },
+        {
+          "name": "full_name",
+          "value": "ERIKSSON ANNA MARIA",
+          "confidence": 0.95
+        }
+      ],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": true,
+          "date_of_birth": true,
+          "gender": true,
+          "expiry_date": true
+        },
+        "available": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "ocr_confidence": 0.9136,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.5304347826086957,
+        "wer": 0.6538461538461539
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": [
+        {
+          "field": "document_number",
+          "value": "L898902C3",
+          "check_digit": "6",
+          "valid": true
+        },
+        {
+          "field": "date_of_birth",
+          "value": "740812",
+          "check_digit": "2",
+          "valid": true
+        },
+        {
+          "field": "expiry_date",
+          "value": "120415",
+          "check_digit": "9",
+          "valid": true
+        },
+        {
+          "field": "personal_number",
+          "value": "ZE184226B<<<<<",
+          "check_digit": "1",
+          "valid": true
+        },
+        {
+          "field": "composite",
+          "value": "L898902C3674081221204159ZE184226B<<<<<1",
+          "check_digit": "0",
+          "valid": true
+        }
+      ]
     },
     {
       "fixture": "TEST-14-text.pdf",
+      "format": "pdf",
       "bytes": 1524,
       "quality": {
         "status": "GOOD",
@@ -263,11 +1009,36 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 439.14,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 2877.56,
+      "peak_rss_kb": 169536,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\n\nAARAV TESTER / PASSPORT T0000001 / UTO\n\n01 JAN 1995/M/01 JAN 2035\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<c<cccc<\nL898902C36UTO7408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": false,
+          "date_of_birth": false,
+          "gender": false,
+          "expiry_date": false
+        },
+        "available": 0,
+        "total": 5,
+        "accuracy": 0.0
+      },
+      "ocr_confidence": 0.7752380952380952,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 0.6608695652173913,
+        "wer": 0.6923076923076923
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": []
     },
     {
       "fixture": "TEST-15-multipage.pdf",
+      "format": "pdf",
       "bytes": 2754,
       "quality": {
         "status": "GOOD",
@@ -280,11 +1051,36 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 3.42,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 7297.77,
+      "peak_rss_kb": 341676,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "FICTIONAL SAMPLE - NOT A REAL IDENTITY\n\nAARAV TESTER / PASSPORT T0000001 / UTO\n\n01 JAN 1995/M/01 JAN 2035\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<c<cccc<\nL898902C36UTO7408122F1204159ZE184226B<<<<<10\n\nFICTIONAL SAMPLE - NOT A REAL IDENTITY\n\nAARAV TESTER / PASSPORT T0000001 / UTO\n\n01 JAN 1995/M/01 JAN 2035\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<c<cccc<\nL898902C36UTO7408122F1204159ZE184226B<<<<<10\n\nFICTIONAL SAMPLE - NOT A REAL IDENTITY\n\nAARAV TESTER / PASSPORT T0000001 / UTO\n\n01 JAN 1995/M/01 JAN 2035\nP<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<c<cccc<\nL898902C36UTO7408122F1204159ZE184226B<<<<<10\n",
+      "structured_fields": [],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": false,
+          "date_of_birth": false,
+          "gender": false,
+          "expiry_date": false
+        },
+        "available": 0,
+        "total": 5,
+        "accuracy": 0.0
+      },
+      "ocr_confidence": 0.7752380952380952,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 2.9304347826086956,
+        "wer": 1.2692307692307692
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": []
     },
     {
       "fixture": "TEST-16-malformed.pdf",
+      "format": "pdf",
       "bytes": 18,
       "quality": {
         "status": "FAILED",
@@ -296,11 +1092,19 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 0.25,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 14.85,
+      "peak_rss_kb": 341676,
+      "ocr_available": true,
+      "ocr_success": false,
+      "ocr_text": null,
+      "structured_fields": [],
+      "field_accuracy": null,
+      "ocr_confidence": null,
+      "error": "RuntimeError"
     },
     {
       "fixture": "TEST-17-pathological.png",
+      "format": "png",
       "bytes": 33247,
       "quality": {
         "status": "REVIEW",
@@ -318,8 +1122,32 @@
       },
       "mrz_detected": false,
       "mrz_valid": false,
-      "processing_ms": 133.95,
-      "ocr": "NOT_RUN (tesseract unavailable)"
+      "processing_ms": 1733.21,
+      "peak_rss_kb": 341676,
+      "ocr_available": true,
+      "ocr_success": true,
+      "ocr_text": "",
+      "structured_fields": [],
+      "field_accuracy": {
+        "fields": {
+          "passport_number": false,
+          "nationality": false,
+          "date_of_birth": false,
+          "gender": false,
+          "expiry_date": false
+        },
+        "available": 0,
+        "total": 5,
+        "accuracy": 0.0
+      },
+      "ocr_confidence": 0.0,
+      "error": null,
+      "ocr_error_metrics": {
+        "cer": 1.0,
+        "wer": 1.0
+      },
+      "ocr_language": "eng",
+      "mrz_checksum_results": []
     }
   ]
 }

@@ -1,13 +1,16 @@
 import logging
+import shutil
+from io import BytesIO
 from uuid import uuid4
 
 import pytest
+from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from app.db.models import AuditEventModel, Base
 from app.domain.documents import DocumentType, InMemoryObjectStorage, ObjectStorage, StoredObject
-from app.domain.ocr import DemoOCRProvider, OCRProvider, OCRStatus
+from app.domain.ocr import DemoOCRProvider, OCRProvider, OCRStatus, ProductionOCRProvider
 from app.repositories.document_repository import SqlAlchemyDocumentRepository
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
 from app.services.document_service import DocumentService
@@ -43,6 +46,29 @@ def test_demo_provider_is_deterministic_and_explicitly_simulated(db: Session) ->
     assert DemoOCRProvider.name == "DEMO / SIMULATED"
     assert first[2] == 0.97
     assert {field.name for field in first[1]} == {"full_name", "passport_number", "nationality", "date_of_birth", "expiry_date", "gender"}
+
+
+@pytest.mark.skipif(shutil.which("tesseract") is None, reason="Tesseract runtime is not installed")
+def test_production_ocr_persists_real_result_and_audit(db: Session) -> None:
+    actor = uuid4()
+    storage = InMemoryObjectStorage()
+    document_service = DocumentService(storage, SqlAlchemyDocumentRepository(db))
+    verification = document_service.create_verification(actor, "production@example.test", "Production Officer")
+    image = Image.new("RGB", (1600, 1000), color="white")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 54)
+    draw.text((80, 120), "FICTIONAL PASSPORT T0000001", fill="black", font=font)
+    draw.text((80, 260), "NATIONALITY UTO", fill="black", font=font)
+    output = BytesIO()
+    image.save(output, format="PNG")
+    document = document_service.upload(verification.id, actor, "fictional.png", "image/png", output.getvalue(), DocumentType.PASSPORT)
+    result = OCRService(storage, SqlAlchemyOCRRepository(db), ProductionOCRProvider()).process(document.id, actor)
+    assert result.status == OCRStatus.COMPLETED
+    assert result.provider == "REAL AI / PRODUCTION"
+    assert result.raw_text.strip()
+    assert result.overall_confidence > 0
+    events = db.scalars(select(AuditEventModel).where(AuditEventModel.document_id == document.id)).all()
+    assert [event.event_type for event in events][-2:] == ["OCR_STARTED", "OCR_COMPLETED"]
 
 
 def test_ocr_result_fields_evidence_and_relationship_persist(db: Session) -> None:

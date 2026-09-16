@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import shutil
 import sys
 from io import BytesIO
 from types import SimpleNamespace
 from uuid import uuid4
 
-from PIL import Image
+import pytest
+from PIL import Image, ImageDraw, ImageFont
 
 from app.domain.document_quality import QualityStatus, assess_image_quality, assess_pdf_quality
 from app.domain.documents import DocumentLifecycle, DocumentRecord, DocumentType
@@ -71,4 +73,24 @@ def test_production_provider_extracts_without_demo_markers(monkeypatch) -> None:
     assert raw_text == MRZ
     assert {field.name for field in fields} >= {"full_name", "passport_number", "date_of_birth", "expiry_date", "gender"}
     assert confidence == 0.85
+    assert language == "eng"
+
+
+@pytest.mark.skipif(shutil.which("tesseract") is None, reason="Tesseract runtime is not installed")
+def test_production_provider_executes_real_tesseract_runtime() -> None:
+    image = Image.new("RGB", (1600, 900), color="white")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 54)
+    draw.text((80, 100), "FICTIONAL SAMPLE NOT A REAL IDENTITY", fill="black", font=font)
+    draw.text((80, 220), "PASSPORT NO: T0000001", fill="black", font=font)
+    draw.text((80, 340), "NATIONALITY: UTO", fill="black", font=font)
+    draw.text((80, 460), "DATE OF BIRTH: 1995-01-01", fill="black", font=font)
+    draw.text((80, 580), "SEX: M", fill="black", font=font)
+    draw.text((80, 700), "EXPIRY DATE: 2035-01-01", fill="black", font=font)
+    output = BytesIO()
+    image.save(output, format="PNG")
+    raw_text, fields, confidence, language = ProductionOCRProvider().process(document("image/png"), output.getvalue())
+    assert "PASSPORT" in raw_text.upper()
+    assert {field.name for field in fields} >= {"passport_number", "nationality", "date_of_birth", "gender", "expiry_date"}
+    assert 0.0 < confidence <= 1.0
     assert language == "eng"

@@ -3,9 +3,11 @@ from __future__ import annotations
 import argparse
 import json
 import resource
+import re
 import shutil
 import sys
 import time
+from uuid import uuid4
 from io import BytesIO
 from pathlib import Path
 
@@ -101,6 +103,38 @@ def build_corpus(directory: Path) -> list[Path]:
     return paths
 
 
+def _document(path: Path):
+    from app.domain.documents import DocumentLifecycle, DocumentRecord, DocumentType
+
+    mime = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".txt": "text/plain"}[path.suffix]
+    now = "2026-01-01T00:00:00+00:00"
+    return DocumentRecord(uuid4(), uuid4(), DocumentType.PASSPORT, path.name, str(path), mime, path.stat().st_size, "synthetic", DocumentLifecycle.READY_FOR_ANALYSIS, now, now)
+
+
+def _field_accuracy(fields) -> dict[str, object]:
+    expected = {"passport_number": "T0000001", "nationality": "UTO", "date_of_birth": "1995-01-01", "gender": "M", "expiry_date": "2035-01-01"}
+    actual = {field.name: field.normalized_value for field in fields}
+    results = {name: actual.get(name) == value for name, value in expected.items()}
+    return {"fields": results, "available": sum(results.values()), "total": len(results), "accuracy": sum(results.values()) / len(results)}
+
+
+def _edit_distance(left: str, right: str) -> int:
+    previous = list(range(len(right) + 1))
+    for row, left_char in enumerate(left, 1):
+        current = [row]
+        for column, right_char in enumerate(right, 1):
+            current.append(min(current[-1] + 1, previous[column] + 1, previous[column - 1] + (left_char != right_char)))
+        previous = current
+    return previous[-1]
+
+
+def _ocr_error_metrics(raw_text: str) -> dict[str, float | None]:
+    expected = "FICTIONAL SAMPLE NOT A REAL IDENTITY AARAV TESTER PASSPORT NO T0000001 NATIONALITY UTO DATE OF BIRTH 1995 01 01 SEX M EXPIRY DATE 2035 01 01"
+    actual = re.sub(r"[^A-Z0-9 ]", "", raw_text.upper())
+    expected_words, actual_words = expected.split(), actual.split()
+    return {"cer": _edit_distance(actual.replace(" ", ""), expected.replace(" ", "")) / len(expected.replace(" ", "")), "wer": _edit_distance(actual_words, expected_words) / len(expected_words)}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="docs/phase-1.1-corpus")
@@ -112,6 +146,7 @@ def main() -> None:
     paths = build_corpus(directory)
     from app.domain.document_quality import assess_image_quality, assess_pdf_quality
     from app.domain.mrz import parse_td3
+    from app.domain.ocr import ProductionOCRProvider
 
     records: list[dict[str, object]] = []
     for path in paths:
@@ -124,7 +159,17 @@ def main() -> None:
         else:
             quality = None
         mrz = parse_td3(content.decode(errors="ignore")) if path.suffix == ".txt" else parse_td3("")
-        records.append({"fixture": path.name, "bytes": len(content), "quality": None if quality is None else quality.as_dict(), "mrz_detected": mrz.detected, "mrz_valid": mrz.valid, "processing_ms": round((time.perf_counter() - started) * 1000, 2), "ocr": "NOT_RUN (tesseract unavailable)" if shutil.which("tesseract") is None else "available; provider benchmark requires OCR runtime"})
+        record: dict[str, object] = {"fixture": path.name, "format": path.suffix.lstrip("."), "bytes": len(content), "quality": None if quality is None else quality.as_dict(), "mrz_detected": mrz.detected, "mrz_valid": mrz.valid, "processing_ms": None, "peak_rss_kb": None, "ocr_available": shutil.which("tesseract") is not None, "ocr_success": False, "ocr_text": None, "structured_fields": [], "field_accuracy": None, "ocr_confidence": None, "error": None}
+        if path.suffix != ".txt" and shutil.which("tesseract") is not None:
+            try:
+                raw_text, fields, confidence, language = ProductionOCRProvider().process(_document(path), content)
+                ocr_mrz = parse_td3(raw_text)
+                record.update({"ocr_success": True, "ocr_text": raw_text, "structured_fields": [{"name": field.name, "value": field.value, "confidence": field.confidence} for field in fields], "field_accuracy": _field_accuracy(fields), "ocr_error_metrics": _ocr_error_metrics(raw_text), "ocr_confidence": confidence, "ocr_language": language, "mrz_detected": ocr_mrz.detected, "mrz_valid": ocr_mrz.valid, "mrz_checksum_results": [item.__dict__ for item in ocr_mrz.checksums]})
+            except Exception as exc:
+                record["error"] = type(exc).__name__
+        record["processing_ms"] = round((time.perf_counter() - started) * 1000, 2)
+        record["peak_rss_kb"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        records.append(record)
     output = directory / "benchmark.json"
     output.write_text(json.dumps({"tesseract": shutil.which("tesseract"), "max_rss_kb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss, "records": records}, indent=2))
     print(output)

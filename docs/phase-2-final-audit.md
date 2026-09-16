@@ -265,7 +265,7 @@ The system is not a legal identity authority. It does not provide liveness, PAD,
 
 ## 27. Exact Git Commit
 
-The audit implementation is committed together with the final regression results. The exact final repository commit is recorded in the final response; the report's commit field is updated in the final documentation commit.
+The Phase 2 finalization implementation and regression evidence were committed at `fb59a0ca41f496ad3d2a8ce678be3481d94dc70e`. The documentation-only commit that records this line is the subsequent repository HEAD reported with the delivery.
 
 ## Status Matrix
 

@@ -18,7 +18,7 @@ The Phase 2.4 full rerun also reproduced the Haar baseline at 2 genuine and 0 im
 
 ## 2. LFW input characteristics
 
-The official LFW loader supplied RGB `float32` arrays with values normalized to 0–1. The Phase 2.4 benchmark used the loader's `resize=2.0` representation, producing 250×188×3 images. This was required because the source representation at `resize=1.0` is 125×94 and fails TrustID's existing 160-pixel minimum dimension validation.
+The benchmark loaded LFW pairs through the configured dataset loader and deterministically converted the resulting arrays into the 8-bit RGB/BGR image representation required by the TrustID pipeline. Any floating-point normalization used during benchmark loading was benchmark-side preprocessing and must not be interpreted as a property of the raw LFW dataset. The selected loader configuration used `resize=2.0`, producing 250×188×3 arrays for this benchmark run. This was required because the loader's `resize=1.0` representation is 125×94 and fails TrustID's existing 160-pixel minimum dimension validation.
 
 A 100-pair development sample contained 200 images. Its mean grayscale brightness was 125.67, mean contrast was 42.19, and mean Laplacian sharpness was 12.41. The sharpness median was 10.28, with a 5th percentile of 5.05 and a 95th percentile of 25.61. This directly explains why the prior sharpness threshold of 20 rejected much of the LFW representation.
 

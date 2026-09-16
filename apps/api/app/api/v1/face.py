@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
@@ -31,6 +32,7 @@ def to_response(result: FaceVerificationResult) -> FaceVerificationResponse:
     return FaceVerificationResponse(id=result.id, verification_id=result.verification_id, document_id=result.document_id, status=result.status, outcome=result.outcome, similarity_score=result.similarity_score, confidence=result.confidence, provider=result.provider, provider_version=result.provider_version, summary=result.summary, failure_reason=result.failure_reason, document_face_quality=result.document_face_quality, presented_face_quality=result.presented_face_quality, face_count=result.face_count, evidence=[FaceEvidenceResponse(**item.__dict__) for item in result.evidence], created_at=result.created_at, updated_at=result.updated_at)
 
 
+@lru_cache(maxsize=1)
 def configured_provider() -> DemoFaceVerificationProvider | ProductionFaceVerificationProvider:
     settings = get_settings()
     if settings.face_provider.lower() == "demo":
@@ -59,7 +61,7 @@ def compare(document_id: UUID, request: Request, image: UploadFile = File(...), 
             type(exc).__name__,
             safe_exception_message(exc),
         )
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Face verification could not be completed with the configured provider.") from exc
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail={"code": "FACE_PROVIDER_UNAVAILABLE", "status": "NOT_AVAILABLE", "message": "Face verification is unavailable with the configured provider."}) from exc
 
 
 @router.get("/{document_id}/face-verification", response_model=FaceVerificationResponse)

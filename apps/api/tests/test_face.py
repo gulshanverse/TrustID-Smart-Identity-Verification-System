@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
+from app.api.v1.face import configured_provider
 from app.db.models import AuditEventModel, Base, FaceVerificationModel
 from app.domain.documents import DocumentType, InMemoryObjectStorage, ObjectStorage, StoredObject
 from app.domain.face import (
@@ -55,6 +56,14 @@ def test_demo_provider_supports_all_deterministic_scenarios() -> None:
         assert first == second
         assert DemoFaceVerificationProvider.name == "DEMO / SIMULATED"
         assert first[0] in {FaceOutcome.MATCH, FaceOutcome.MISMATCH, FaceOutcome.REVIEW, FaceOutcome.UNAVAILABLE}
+
+
+def test_configured_provider_is_cached_without_changing_explicit_mode() -> None:
+    configured_provider.cache_clear()
+    first = configured_provider()
+    second = configured_provider()
+    assert first is second
+    assert first.name == "DEMO / SIMULATED"
 
 
 def test_fictional_demo_face_fixture_is_deterministic_and_contains_no_real_pii() -> None:

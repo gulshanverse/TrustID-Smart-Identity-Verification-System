@@ -1,0 +1,359 @@
+{
+  "environment": "LOCAL",
+  "dataset": "fictional synthetic operational corpus already present in repository; no real subjects",
+  "models": {
+    "sface_sha256": "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79",
+    "yunet_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
+  },
+  "configuration": {
+    "detector_score_threshold": 0.9,
+    "blur_threshold": 5.0,
+    "min_face_pixels": 6400,
+    "brightness": [
+      35.0,
+      225.0
+    ],
+    "contrast_min": 18.0,
+    "alignment": "alignCrop",
+    "verification_threshold": 0.363
+  },
+  "pipelines": {
+    "haar_current_default": {
+      "detector": "haar",
+      "operational_cases": {
+        "good_frontal": {
+          "status": "unavailable",
+          "outcome": "REVIEW",
+          "score": null,
+          "confidence": null,
+          "quality": "MULTIPLE_FACES",
+          "face_count": 2,
+          "reason": "Exactly one face is required; no face was selected.",
+          "elapsed_ms": 547.5223470002675
+        },
+        "mild_blur": {
+          "status": "unavailable",
+          "outcome": "REVIEW",
+          "score": null,
+          "confidence": null,
+          "quality": "MULTIPLE_FACES",
+          "face_count": 2,
+          "reason": "Exactly one face is required; no face was selected.",
+          "elapsed_ms": 448.3648320001521
+        },
+        "heavy_blur": {
+          "status": "unavailable",
+          "outcome": "REVIEW",
+          "score": null,
+          "confidence": null,
+          "quality": "MULTIPLE_FACES",
+          "face_count": 2,
+          "reason": "Exactly one face is required; no face was selected.",
+          "elapsed_ms": 409.75535600045987
+        },
+        "low_light": {
+          "status": "unavailable",
+          "outcome": "UNAVAILABLE",
+          "score": null,
+          "confidence": null,
+          "quality": "LOW_QUALITY",
+          "face_count": 1,
+          "reason": "Face region is too blurry.",
+          "elapsed_ms": 444.4734389999212
+        },
+        "overexposure": {
+          "status": "scored",
+          "outcome": "MATCH",
+          "score": 0.6338974833488464,
+          "confidence": null,
+          "quality": "READY",
+          "face_count": 1,
+          "reason": null,
+          "elapsed_ms": 1073.7710659996083
+        },
+        "low_contrast": {
+          "status": "unavailable",
+          "outcome": "UNAVAILABLE",
+          "score": null,
+          "confidence": null,
+          "quality": "LOW_QUALITY",
+          "face_count": 1,
+          "reason": "Face region is too blurry.",
+          "elapsed_ms": 415.72555000129796
+        },
+        "compression": {
+          "status": "unavailable",
+          "outcome": "REVIEW",
+          "score": null,
+          "confidence": null,
+          "quality": "MULTIPLE_FACES",
+          "face_count": 2,
+          "reason": "Exactly one face is required; no face was selected.",
+          "elapsed_ms": 620.408218999728
+        },
+        "rotation": {
+          "status": "scored",
+          "outcome": "MATCH",
+          "score": 0.48486459255218506,
+          "confidence": null,
+          "quality": "READY",
+          "face_count": 1,
+          "reason": null,
+          "elapsed_ms": 1002.0348690013634
+        },
+        "partial_crop": {
+          "status": "unavailable",
+          "outcome": "UNAVAILABLE",
+          "score": null,
+          "confidence": null,
+          "quality": "NO_FACE",
+          "face_count": 0,
+          "reason": "No face was detected.",
+          "elapsed_ms": 408.3089959985955
+        },
+        "face_too_small": {
+          "status": "scored",
+          "outcome": "MATCH",
+          "score": 0.9649130702018738,
+          "confidence": null,
+          "quality": "READY",
+          "face_count": 1,
+          "reason": null,
+          "elapsed_ms": 596.9858469998144
+        },
+        "multiple_faces": {
+          "status": "unavailable",
+          "outcome": "REVIEW",
+          "score": null,
+          "confidence": null,
+          "quality": "MULTIPLE_FACES",
+          "face_count": 3,
+          "reason": "Exactly one face is required; no face was selected.",
+          "elapsed_ms": 876.7423580011382
+        },
+        "no_face": {
+          "status": "unavailable",
+          "outcome": "UNAVAILABLE",
+          "score": null,
+          "confidence": null,
+          "quality": "NO_FACE",
+          "face_count": 0,
+          "reason": "No face was detected.",
+          "elapsed_ms": 356.0228320002352
+        },
+        "corrupted": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "The image could not be decoded.",
+          "elapsed_ms": 379.87699000041175
+        },
+        "unsupported_format": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "The image could not be decoded.",
+          "elapsed_ms": 410.2562360003503
+        }
+      },
+      "concurrency": [
+        {
+          "concurrency": 1,
+          "requests": 1,
+          "successes": 0,
+          "failures": 1,
+          "success_rate": 0.0,
+          "p50_ms": 545.3754459995253,
+          "p95_ms": 545.3754459995253,
+          "p99_ms": 545.3754459995253,
+          "wall_ms": 546.3349170004221,
+          "peak_rss_kb": 433324,
+          "rss_growth_kb": 30136
+        },
+        {
+          "concurrency": 5,
+          "requests": 5,
+          "successes": 0,
+          "failures": 5,
+          "success_rate": 0.0,
+          "p50_ms": 2039.5902300006128,
+          "p95_ms": 3087.27849839961,
+          "p99_ms": 3182.861563679253,
+          "wall_ms": 3209.1608320006344,
+          "peak_rss_kb": 435500,
+          "rss_growth_kb": 128
+        },
+        {
+          "concurrency": 10,
+          "requests": 10,
+          "successes": 0,
+          "failures": 10,
+          "success_rate": 0.0,
+          "p50_ms": 3095.9443350011497,
+          "p95_ms": 5453.4483648996675,
+          "p99_ms": 5661.118122579355,
+          "wall_ms": 5715.365517999089,
+          "peak_rss_kb": 435628,
+          "rss_growth_kb": 128
+        },
+        {
+          "concurrency": 20,
+          "requests": 20,
+          "successes": 0,
+          "failures": 20,
+          "success_rate": 0.0,
+          "p50_ms": 5971.742055499817,
+          "p95_ms": 10863.965682349408,
+          "p99_ms": 11341.745174869466,
+          "wall_ms": 11466.022908000014,
+          "peak_rss_kb": 449808,
+          "rss_growth_kb": 14180
+        }
+      ]
+    },
+    "yunet_candidate": {
+      "detector": "yunet",
+      "operational_cases": {
+        "good_frontal": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 474.42435399898386
+        },
+        "mild_blur": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 355.0470089994633
+        },
+        "heavy_blur": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 352.11248499945214
+        },
+        "low_light": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 341.68470700024045
+        },
+        "overexposure": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 335.7772390008904
+        },
+        "low_contrast": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 346.30137699969055
+        },
+        "compression": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 393.8972420000937
+        },
+        "rotation": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 366.72527200062177
+        },
+        "partial_crop": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 364.10806399908324
+        },
+        "face_too_small": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 323.4611509997194
+        },
+        "multiple_faces": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 329.52265099993383
+        },
+        "no_face": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 344.8153919998731
+        },
+        "corrupted": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 354.8810679985763
+        },
+        "unsupported_format": {
+          "status": "error",
+          "error_type": "ValueError",
+          "reason": "Reference face unavailable: No face was detected.",
+          "elapsed_ms": 370.02799000038067
+        }
+      },
+      "concurrency": [
+        {
+          "concurrency": 1,
+          "requests": 1,
+          "successes": 0,
+          "failures": 1,
+          "success_rate": 0.0,
+          "p50_ms": 382.3310980005772,
+          "p95_ms": 382.3310980005772,
+          "p99_ms": 382.3310980005772,
+          "wall_ms": 382.9618580002716,
+          "peak_rss_kb": 720324,
+          "rss_growth_kb": 0
+        },
+        {
+          "concurrency": 5,
+          "requests": 5,
+          "successes": 0,
+          "failures": 5,
+          "success_rate": 0.0,
+          "p50_ms": 988.4950730011042,
+          "p95_ms": 1660.6198396013497,
+          "p99_ms": 1723.1296111213305,
+          "wall_ms": 1740.3921139994054,
+          "peak_rss_kb": 727384,
+          "rss_growth_kb": 7060
+        },
+        {
+          "concurrency": 10,
+          "requests": 10,
+          "successes": 0,
+          "failures": 10,
+          "success_rate": 0.0,
+          "p50_ms": 1850.3961890000937,
+          "p95_ms": 3234.584901050311,
+          "p99_ms": 3359.916853010782,
+          "wall_ms": 3393.53599900096,
+          "peak_rss_kb": 727416,
+          "rss_growth_kb": 32
+        },
+        {
+          "concurrency": 20,
+          "requests": 20,
+          "successes": 0,
+          "failures": 20,
+          "success_rate": 0.0,
+          "p50_ms": 3691.37045449952,
+          "p95_ms": 6567.859014450278,
+          "p99_ms": 6846.088910889647,
+          "wall_ms": 6919.683093999993,
+          "peak_rss_kb": 727628,
+          "rss_growth_kb": 212
+        }
+      ]
+    }
+  },
+  "raw_images_committed": false,
+  "render_numbers": false,
+  "peak_rss_kb": 727628
+}

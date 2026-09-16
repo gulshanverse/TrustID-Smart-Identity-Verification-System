@@ -4,7 +4,7 @@ This guide prepares the existing TrustID prototype for a controlled SIH 2026 dem
 
 ## Deployment architecture
 
-Deploy the Next.js frontend to Vercel, the FastAPI API to one Render or equivalent service instance, PostgreSQL to a managed PostgreSQL provider, Redis to a managed Redis provider, and documents to a private S3-compatible bucket such as Cloudflare R2. MinIO remains a local-development dependency. Do not configure multiple API replicas because authentication and sessions currently use in-process memory.
+Deploy the Next.js frontend to Vercel, the FastAPI API to one Render or equivalent service instance, PostgreSQL to a managed PostgreSQL provider, Redis to a managed Redis provider, and documents to a private S3-compatible bucket such as Cloudflare R2. MinIO remains a local-development dependency. Do not configure multiple API replicas because authentication and sessions currently use in-process memory. The production face image is built from `apps/api/Dockerfile`; it installs OpenCV and downloads the pinned SFace/YuNet assets through checksum-verifying `apps/api/scripts/provision_face_models.sh`.
 
 ## Required services and variables
 
@@ -23,6 +23,11 @@ The API requires PostgreSQL, Redis configuration, and a private S3-compatible bu
 | `OCR_PROVIDER` | `demo` |
 | `TAMPERING_PROVIDER` | `demo` |
 | `FACE_PROVIDER` | `demo` |
+| `FACE_DETECTOR` | `haar` by default; use `yunet` only after model provisioning and environment validation |
+| `FACE_MODEL_PATH` | Pinned SFace path inside the production image when `FACE_PROVIDER=production` |
+| `FACE_MODEL_SHA256` | `0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79` |
+| `FACE_DETECTOR_MODEL_PATH` | Pinned YuNet path inside the production image when `FACE_DETECTOR=yunet` |
+| `FACE_DETECTOR_MODEL_SHA256` | `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4` |
 | `CORS_ORIGINS` | Exact HTTPS Vercel origin, comma-separated if required |
 | `DEMO_PASSWORD` | Private demo-only password, at least ten characters |
 | `SESSION_COOKIE_SECURE` | `true` |
@@ -57,6 +62,8 @@ uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 
 Configure the platform health check as `GET /api/v1/health`. It does not require authentication. The API reads database, Redis, storage, provider, CORS, and cookie settings from environment variables.
 
+The face provider is cached once per API process after configuration and uses a process-local inference lock. This prevents model reloading on every request and avoids concurrent mutation of OpenCV detector state. This is a safe single-instance optimization, not a horizontal-capacity guarantee.
+
 In `APP_ENV=production`, invalid or unavailable object-storage client initialization fails API startup instead of silently installing an unavailable-storage fallback. This makes Render deployment logs identify configuration/dependency failures before an upload request is attempted. Local development retains the unavailable-storage fallback for environments where MinIO is intentionally not running.
 
 ## Frontend deployment
@@ -89,6 +96,8 @@ Authentication and session storage are in-process. This is acceptable only for a
 | Authentication | Ready with condition | One API instance only; in-process sessions are not horizontally scalable |
 | CORS and cookies | Ready with configuration | Exact HTTPS origin, secure cookies, SameSite=None cross-site |
 | Demo safety | Ready | Keep deterministic demo providers and fictional data |
+| Production face image | Ready for controlled image build | Use `apps/api/Dockerfile`; model checksum is verified during build |
+| Render production face inference | Blocked | This repository has no validated Render image/model execution evidence |
 | CI | Ready | Backend and frontend quality gates pass, including migration SQL validation |
 
 Do not deploy until the actual frontend/API domains, managed service credentials, and private demo bucket have been selected and configured through the hosting providers' secret managers.

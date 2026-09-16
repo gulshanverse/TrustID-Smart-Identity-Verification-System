@@ -5,6 +5,7 @@ import time
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
+from threading import RLock
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -147,6 +148,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         self.brightness_max = brightness_max
         self.contrast_min = contrast_min
         self.last_trace: dict[str, Any] = {}
+        self._inference_lock = RLock()
         try:
             cv2: Any = __import__("cv2")
         except ImportError as exc:  # pragma: no cover - environment-specific
@@ -277,6 +279,10 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         return image, quality, explanation, 1
 
     def compare(self, document_face: bytes, presented_face: bytes, scenario: FaceScenario = FaceScenario.MATCH) -> tuple[FaceOutcome, float | None, float | None, str, str | None, FaceQuality, int | None]:
+        with self._inference_lock:
+            return self._compare(document_face, presented_face, scenario)
+
+    def _compare(self, document_face: bytes, presented_face: bytes, scenario: FaceScenario = FaceScenario.MATCH) -> tuple[FaceOutcome, float | None, float | None, str, str | None, FaceQuality, int | None]:
         del scenario
         self.last_trace = {"detector": self.detector_mode, "box_padding": self.box_padding, "quality_thresholds": {"min_face_pixels": self.min_face_pixels, "blur": self.blur_threshold, "brightness_min": self.brightness_min, "brightness_max": self.brightness_max, "contrast": self.contrast_min}}
         document_image, document_quality, document_reason, _document_count = self._analyze(document_face)

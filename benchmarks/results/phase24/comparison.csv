@@ -1,0 +1,3 @@
+pipeline,detector,alignment,genuine_coverage,impostor_coverage,scored_genuine,scored_impostor,auc,eer,tpr_at_363,far_at_363,frr_at_363,tpr_at_30,far_at_30,frr_at_30,successful_mean_ms,successful_p95_ms
+haar_baseline,haar,crop_resize,0.0006666666666666666,0.0,2,0,UNDEFINED,UNDEFINED,1.0,UNDEFINED,0.0,1.0,UNDEFINED,0.0,103.38441300064005,116.95610519991533
+yunet_candidate_blur_5,yunet,alignCrop,0.9693333333333334,0.948,2908,2844,0.9982231711540209,0.25829,0.9755845942228336,0.0,0.024415405777166437,0.9889958734525447,0.0017580872011251757,0.011004126547455296,46.55392961978258,54.01587429923893

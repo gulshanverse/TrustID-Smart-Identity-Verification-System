@@ -1,0 +1,14 @@
+pipeline,failure_type,count,percentage_of_pairs
+haar_baseline,reference_no_face_was_detected,5654,0.9423333333333334
+haar_baseline,reference_face_region_is_too_blurry,205,0.034166666666666665
+haar_baseline,Face region is too blurry.,12,0.002
+haar_baseline,No face was detected.,85,0.014166666666666666
+haar_baseline,reference_face_region_is_too_small,29,0.004833333333333334
+haar_baseline,reference_exactly_one_face_is_required;_no_face_was_selected,12,0.002
+haar_baseline,reference_face_exposure_or_contrast_is_insufficient,1,0.00016666666666666666
+yunet_candidate_blur_5,reference_face_region_is_too_blurry,119,0.019833333333333335
+yunet_candidate_blur_5,Face region is too blurry.,105,0.0175
+yunet_candidate_blur_5,No face was detected.,10,0.0016666666666666668
+yunet_candidate_blur_5,reference_face_exposure_or_contrast_is_insufficient,4,0.0006666666666666666
+yunet_candidate_blur_5,reference_no_face_was_detected,6,0.001
+yunet_candidate_blur_5,Face exposure or contrast is insufficient.,4,0.0006666666666666666

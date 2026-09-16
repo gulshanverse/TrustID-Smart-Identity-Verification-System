@@ -1,0 +1,396 @@
+{
+  "kind": "phase24_development_only_sweep",
+  "dataset": {
+    "name": "LFW",
+    "official_fold": 0,
+    "pairs": 600,
+    "raw_data_committed": false
+  },
+  "thresholds_unchanged": {
+    "review": 0.3,
+    "match": 0.363
+  },
+  "selection_rule": "No configuration selected on AUC alone; final configuration requires coverage, failure breakdown, score behavior, and full untouched rerun.",
+  "results": [
+    {
+      "name": "haar_baseline",
+      "config": {
+        "detector": "haar"
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 0,
+      "impostor_scored": 0,
+      "genuine_coverage": 0.0,
+      "impostor_coverage": 0.0,
+      "genuine_mean": null,
+      "impostor_mean": null,
+      "stage_counts": {
+        "exception": 590,
+        "low_quality": 2,
+        "no_face": 8
+      },
+      "failures": {
+        "reference_no_face_was_detected": 564,
+        "reference_face_region_is_too_blurry": 17,
+        "Face region is too blurry.": 2,
+        "No face was detected.": 8,
+        "reference_face_region_is_too_small": 7,
+        "reference_exactly_one_face_is_required;_no_face_was_selected": 2
+      },
+      "latency_ms": {
+        "mean": 11.362020409990995,
+        "median": 10.886121000112325,
+        "p95": 16.132401400045634
+      }
+    },
+    {
+      "name": "haar_padding_08",
+      "config": {
+        "detector": "haar",
+        "box_padding": 0.08
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 0,
+      "impostor_scored": 0,
+      "genuine_coverage": 0.0,
+      "impostor_coverage": 0.0,
+      "genuine_mean": null,
+      "impostor_mean": null,
+      "stage_counts": {
+        "exception": 591,
+        "low_quality": 1,
+        "no_face": 8
+      },
+      "failures": {
+        "reference_no_face_was_detected": 564,
+        "reference_face_region_is_too_blurry": 23,
+        "Face region is too blurry.": 1,
+        "No face was detected.": 8,
+        "reference_exactly_one_face_is_required;_no_face_was_selected": 2,
+        "reference_face_region_is_too_small": 2
+      },
+      "latency_ms": {
+        "mean": 10.984559350035852,
+        "median": 10.732312499385444,
+        "p95": 15.209310800855745
+      }
+    },
+    {
+      "name": "haar_padding_12",
+      "config": {
+        "detector": "haar",
+        "box_padding": 0.12
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 0,
+      "impostor_scored": 0,
+      "genuine_coverage": 0.0,
+      "impostor_coverage": 0.0,
+      "genuine_mean": null,
+      "impostor_mean": null,
+      "stage_counts": {
+        "exception": 591,
+        "low_quality": 2,
+        "no_face": 7
+      },
+      "failures": {
+        "reference_no_face_was_detected": 564,
+        "reference_face_region_is_too_blurry": 23,
+        "Face region is too blurry.": 2,
+        "No face was detected.": 7,
+        "reference_exactly_one_face_is_required;_no_face_was_selected": 2,
+        "reference_face_region_is_too_small": 2
+      },
+      "latency_ms": {
+        "mean": 11.232046251661814,
+        "median": 10.764077000203542,
+        "p95": 16.393776200857246
+      }
+    },
+    {
+      "name": "yunet_score_060",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.6
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 12,
+      "impostor_scored": 7,
+      "genuine_coverage": 0.04,
+      "impostor_coverage": 0.023333333333333334,
+      "genuine_mean": 0.5929087003072103,
+      "impostor_mean": 0.02211752613740308,
+      "stage_counts": {
+        "exception": 493,
+        "low_quality": 88,
+        "scored": 19
+      },
+      "failures": {
+        "reference_face_region_is_too_blurry": 493,
+        "Face region is too blurry.": 88
+      },
+      "latency_ms": {
+        "mean": 7.142164674999852,
+        "median": 5.241309000666661,
+        "p95": 9.778510150317741
+      }
+    },
+    {
+      "name": "yunet_score_090",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.9
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 12,
+      "impostor_scored": 7,
+      "genuine_coverage": 0.04,
+      "impostor_coverage": 0.023333333333333334,
+      "genuine_mean": 0.5929087003072103,
+      "impostor_mean": 0.02211752613740308,
+      "stage_counts": {
+        "exception": 493,
+        "low_quality": 87,
+        "scored": 19,
+        "no_face": 1
+      },
+      "failures": {
+        "reference_face_region_is_too_blurry": 492,
+        "Face region is too blurry.": 87,
+        "No face was detected.": 1,
+        "reference_no_face_was_detected": 1
+      },
+      "latency_ms": {
+        "mean": 7.454571265009993,
+        "median": 5.481857999257045,
+        "p95": 10.33420730036596
+      }
+    },
+    {
+      "name": "yunet_score_060_padding_08",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.6,
+        "box_padding": 0.08
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 13,
+      "impostor_scored": 6,
+      "genuine_coverage": 0.043333333333333335,
+      "impostor_coverage": 0.02,
+      "genuine_mean": 0.5795702429918143,
+      "impostor_mean": 0.0038237599655985832,
+      "stage_counts": {
+        "exception": 504,
+        "low_quality": 77,
+        "scored": 19
+      },
+      "failures": {
+        "reference_face_region_is_too_blurry": 504,
+        "Face region is too blurry.": 77
+      },
+      "latency_ms": {
+        "mean": 6.222163681635114,
+        "median": 4.39031699897896,
+        "p95": 9.550050048892444
+      }
+    },
+    {
+      "name": "yunet_score_090_padding_08",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.9,
+        "box_padding": 0.08
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 13,
+      "impostor_scored": 6,
+      "genuine_coverage": 0.043333333333333335,
+      "impostor_coverage": 0.02,
+      "genuine_mean": 0.5795702429918143,
+      "impostor_mean": 0.0038237599655985832,
+      "stage_counts": {
+        "exception": 504,
+        "low_quality": 76,
+        "scored": 19,
+        "no_face": 1
+      },
+      "failures": {
+        "reference_face_region_is_too_blurry": 503,
+        "Face region is too blurry.": 76,
+        "No face was detected.": 1,
+        "reference_no_face_was_detected": 1
+      },
+      "latency_ms": {
+        "mean": 6.622298024982835,
+        "median": 4.781225999977323,
+        "p95": 10.471403500105225
+      }
+    },
+    {
+      "name": "yunet_no_blur_gate",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.9,
+        "blur_threshold": 0.0
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 299,
+      "impostor_scored": 296,
+      "genuine_coverage": 0.9966666666666667,
+      "impostor_coverage": 0.9866666666666667,
+      "genuine_mean": 0.6320869163127248,
+      "impostor_mean": 0.04030549230456755,
+      "stage_counts": {
+        "scored": 595,
+        "no_face": 1,
+        "exception": 4
+      },
+      "failures": {
+        "No face was detected.": 1,
+        "reference_face_exposure_or_contrast_is_insufficient": 3,
+        "reference_no_face_was_detected": 1
+      },
+      "latency_ms": {
+        "mean": 47.772854378369324,
+        "median": 47.222068999872135,
+        "p95": 56.52528745094969
+      }
+    },
+    {
+      "name": "yunet_no_brightness_gate",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.9,
+        "brightness_min": 0.0,
+        "brightness_max": 255.0
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 12,
+      "impostor_scored": 7,
+      "genuine_coverage": 0.04,
+      "impostor_coverage": 0.023333333333333334,
+      "genuine_mean": 0.5929087003072103,
+      "impostor_mean": 0.02211752613740308,
+      "stage_counts": {
+        "exception": 493,
+        "low_quality": 87,
+        "scored": 19,
+        "no_face": 1
+      },
+      "failures": {
+        "reference_face_region_is_too_blurry": 492,
+        "Face region is too blurry.": 87,
+        "No face was detected.": 1,
+        "reference_no_face_was_detected": 1
+      },
+      "latency_ms": {
+        "mean": 7.239194996654987,
+        "median": 5.222300498644472,
+        "p95": 10.64788614912686
+      }
+    },
+    {
+      "name": "yunet_no_contrast_gate",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.9,
+        "contrast_min": 0.0
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 12,
+      "impostor_scored": 7,
+      "genuine_coverage": 0.04,
+      "impostor_coverage": 0.023333333333333334,
+      "genuine_mean": 0.5929087003072103,
+      "impostor_mean": 0.02211752613740308,
+      "stage_counts": {
+        "exception": 493,
+        "low_quality": 87,
+        "scored": 19,
+        "no_face": 1
+      },
+      "failures": {
+        "reference_face_region_is_too_blurry": 492,
+        "Face region is too blurry.": 87,
+        "No face was detected.": 1,
+        "reference_no_face_was_detected": 1
+      },
+      "latency_ms": {
+        "mean": 7.854487669995554,
+        "median": 5.8333729994046735,
+        "p95": 11.317806951046803
+      }
+    },
+    {
+      "name": "yunet_relaxed_size",
+      "config": {
+        "detector": "yunet",
+        "detector_model_path": "models/face_detection_yunet_2023mar.onnx",
+        "detector_expected_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+        "detector_score_threshold": 0.9,
+        "min_face_pixels": 1600
+      },
+      "pairs": 600,
+      "genuine_pairs": 300,
+      "impostor_pairs": 300,
+      "genuine_scored": 12,
+      "impostor_scored": 7,
+      "genuine_coverage": 0.04,
+      "impostor_coverage": 0.023333333333333334,
+      "genuine_mean": 0.5929087003072103,
+      "impostor_mean": 0.02211752613740308,
+      "stage_counts": {
+        "exception": 493,
+        "low_quality": 87,
+        "scored": 19,
+        "no_face": 1
+      },
+      "failures": {
+        "reference_face_region_is_too_blurry": 492,
+        "Face region is too blurry.": 87,
+        "No face was detected.": 1,
+        "reference_no_face_was_detected": 1
+      },
+      "latency_ms": {
+        "mean": 6.476782938298129,
+        "median": 4.710423999313207,
+        "p95": 8.933525199699934
+      }
+    }
+  ]
+}

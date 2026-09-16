@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import time
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -125,7 +126,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
     review_threshold = 0.30
     min_face_pixels = 80 * 80
 
-    def __init__(self, model_path: str | Path, expected_sha256: str | None = None, detector: str = "haar", detector_model_path: str | Path | None = None, detector_expected_sha256: str | None = None, detector_score_threshold: float = 0.9) -> None:
+    def __init__(self, model_path: str | Path, expected_sha256: str | None = None, detector: str = "haar", detector_model_path: str | Path | None = None, detector_expected_sha256: str | None = None, detector_score_threshold: float = 0.9, box_padding: float = 0.0, min_face_pixels: int = 80 * 80, blur_threshold: float = 20.0, brightness_min: float = 35.0, brightness_max: float = 225.0, contrast_min: float = 18.0) -> None:
         self.model_path = Path(model_path)
         if not self.model_path.is_file():
             raise RuntimeError("The configured production face model is unavailable.")
@@ -136,6 +137,16 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
             raise RuntimeError("The configured production face model failed integrity verification.")
         self.model_sha256 = actual_sha256
         self.detector_mode = detector.lower()
+        self.detector_score_threshold = detector_score_threshold
+        if not 0.0 <= box_padding <= 0.25:
+            raise RuntimeError("The configured face box padding is unsupported.")
+        self.box_padding = box_padding
+        self.min_face_pixels = min_face_pixels
+        self.blur_threshold = blur_threshold
+        self.brightness_min = brightness_min
+        self.brightness_max = brightness_max
+        self.contrast_min = contrast_min
+        self.last_trace: dict[str, Any] = {}
         try:
             cv2: Any = __import__("cv2")
         except ImportError as exc:  # pragma: no cover - environment-specific
@@ -172,6 +183,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
             raise RuntimeError("The configured production face model could not be loaded.") from exc
 
     def _decode(self, content: bytes) -> Any:
+        started = time.perf_counter()
         np: Any = __import__("numpy")
         image = self._cv2.imdecode(np.frombuffer(content, dtype=np.uint8), self._cv2.IMREAD_COLOR)
         if image is None or image.size == 0:
@@ -179,9 +191,12 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         height, width = image.shape[:2]
         if width < 160 or height < 160 or width * height > 25_000_000:
             raise ValueError("The image dimensions are not suitable for face verification.")
+        self.last_trace["decode_ms"] = (time.perf_counter() - started) * 1000
+        self.last_trace["input"] = {"width": width, "height": height, "channels": int(image.shape[2]), "color_order": "BGR", "dtype": str(image.dtype)}
         return image
 
     def _faces(self, image: Any) -> list[tuple[int, int, int, int]]:
+        started = time.perf_counter()
         if self._yunet is not None:
             height, width = image.shape[:2]
             self._yunet.setInputSize((width, height))
@@ -194,34 +209,55 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
                 face = (int(row[0]), int(row[1]), int(row[2]), int(row[3]))
                 faces.append(face)
                 self._face_rows[face] = row
+            self.last_trace["detector_ms"] = (time.perf_counter() - started) * 1000
+            self.last_trace["detector_count"] = len(faces)
             return faces
         gray = self._cv2.cvtColor(image, self._cv2.COLOR_BGR2GRAY)
         faces = self._detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=12, minSize=(40, 40))
-        return [(int(face[0]), int(face[1]), int(face[2]), int(face[3])) for face in faces]
+        result = [(int(face[0]), int(face[1]), int(face[2]), int(face[3])) for face in faces]
+        self.last_trace["detector_ms"] = (time.perf_counter() - started) * 1000
+        self.last_trace["detector_count"] = len(result)
+        return result
+
+    def _padded_face(self, image: Any, face: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
+        x, y, width, height = face
+        pad_x = int(width * self.box_padding)
+        pad_y = int(height * self.box_padding)
+        left = max(0, x - pad_x)
+        top = max(0, y - pad_y)
+        right = min(image.shape[1], x + width + pad_x)
+        bottom = min(image.shape[0], y + height + pad_y)
+        return left, top, right - left, bottom - top
 
     def _quality(self, image: Any, face: tuple[int, int, int, int]) -> tuple[FaceQuality, str]:
-        x, y, width, height = face
+        started = time.perf_counter()
+        x, y, width, height = self._padded_face(image, face)
         crop = image[y:y + height, x:x + width]
         gray = self._cv2.cvtColor(crop, self._cv2.COLOR_BGR2GRAY)
         sharpness = float(self._cv2.Laplacian(gray, self._cv2.CV_64F).var())
         brightness = float(gray.mean())
         contrast = float(gray.std())
+        self.last_trace["quality_ms"] = (time.perf_counter() - started) * 1000
+        self.last_trace["quality_metrics"] = {"face_width": width, "face_height": height, "face_area": width * height, "sharpness": sharpness, "brightness": brightness, "contrast": contrast}
         if width * height < self.min_face_pixels:
             return FaceQuality.LOW_QUALITY, "Face region is too small."
-        if sharpness < 20:
+        if sharpness < self.blur_threshold:
             return FaceQuality.LOW_QUALITY, "Face region is too blurry."
-        if brightness < 35 or brightness > 225 or contrast < 18:
+        if brightness < self.brightness_min or brightness > self.brightness_max or contrast < self.contrast_min:
             return FaceQuality.LOW_QUALITY, "Face exposure or contrast is insufficient."
         return FaceQuality.READY, "Face size, sharpness, brightness, and contrast passed the quality gate."
 
     def _embedding(self, image: Any, face: tuple[int, int, int, int], landmark_row: Any = None) -> Any:
-        x, y, width, height = face
+        started = time.perf_counter()
+        x, y, width, height = self._padded_face(image, face)
         crop = image[y:y + height, x:x + width]
         if self._yunet is not None:
             aligned = self._recognizer.alignCrop(image, landmark_row)
         else:
             aligned = self._cv2.resize(crop, (112, 112), interpolation=self._cv2.INTER_AREA)
         embedding = self._recognizer.feature(aligned)
+        self.last_trace["alignment_ms"] = (time.perf_counter() - started) * 1000
+        self.last_trace["alignment"] = "alignCrop" if self._yunet is not None else "crop_resize"
         np: Any = __import__("numpy")
         vector = np.asarray(embedding, dtype=np.float32).reshape(-1)
         norm = float(np.linalg.norm(vector))
@@ -242,6 +278,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
 
     def compare(self, document_face: bytes, presented_face: bytes, scenario: FaceScenario = FaceScenario.MATCH) -> tuple[FaceOutcome, float | None, float | None, str, str | None, FaceQuality, int | None]:
         del scenario
+        self.last_trace = {"detector": self.detector_mode, "box_padding": self.box_padding, "quality_thresholds": {"min_face_pixels": self.min_face_pixels, "blur": self.blur_threshold, "brightness_min": self.brightness_min, "brightness_max": self.brightness_max, "contrast": self.contrast_min}}
         document_image, document_quality, document_reason, _document_count = self._analyze(document_face)
         if document_quality != FaceQuality.READY:
             raise ValueError(f"Reference face unavailable: {document_reason}")
@@ -253,8 +290,10 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         reference_rows = dict(self._face_rows) if self._yunet is not None else {}
         presented_faces = self._faces(presented_image)
         presented_rows = dict(self._face_rows) if self._yunet is not None else {}
+        embedding_started = time.perf_counter()
         reference_embedding = self._embedding(document_image, faces[0], reference_rows.get(faces[0]))
         presented_embedding = self._embedding(presented_image, presented_faces[0], presented_rows.get(presented_faces[0]))
+        self.last_trace["sface_ms"] = (time.perf_counter() - embedding_started) * 1000
         similarity = float(reference_embedding @ presented_embedding)
         if similarity >= self.threshold:
             outcome, summary = FaceOutcome.MATCH, "Biometric similarity meets the configured verification threshold; officer review remains required."

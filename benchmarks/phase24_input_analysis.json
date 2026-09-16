@@ -1,0 +1,43 @@
+{
+  "sample_pairs": 100,
+  "sample_images": 200,
+  "source_dtype": "float32",
+  "source_shape": [
+    250,
+    188,
+    3
+  ],
+  "channels": 3,
+  "source_color_format": "RGB float32 normalized 0..1 from loader",
+  "benchmark_decode_format": "JPEG bytes decoded by OpenCV as BGR uint8",
+  "brightness_gray": {
+    "mean": 125.67118340425532,
+    "median": 125.98860638297873,
+    "min": 61.97921276595745,
+    "max": 190.42497872340425,
+    "p05": 94.41176914893617,
+    "p95": 153.95384468085103
+  },
+  "contrast_gray": {
+    "mean": 42.189365357430724,
+    "median": 41.87128285760111,
+    "min": 20.085683818680682,
+    "max": 70.34755529431908,
+    "p05": 29.20245141950511,
+    "p95": 58.52168028142363
+  },
+  "sharpness_laplacian_variance": {
+    "mean": 12.413314730233138,
+    "median": 10.28199397283839,
+    "min": 4.0752883544590315,
+    "max": 44.512790402897245,
+    "p05": 5.053341320416478,
+    "p95": 25.612476586057017
+  },
+  "normalization": {
+    "deterministic": true,
+    "scale_float32_to_uint8": true,
+    "encode_jpeg_quality": 95,
+    "resize": "source loader resize=2.0 only; no sharpening, contrast enhancement, or identity-altering transform"
+  }
+}

@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     face_detector_model_path: str = "models/face_detection_yunet_2023mar.onnx"
     face_detector_model_sha256: str | None = None
     face_detector_score_threshold: float = 0.9
+    face_box_padding: float = 0.0
+    face_min_face_pixels: int = 6400
+    face_blur_threshold: float = 20.0
+    face_brightness_min: float = 35.0
+    face_brightness_max: float = 225.0
+    face_contrast_min: float = 18.0
     cors_origins: str = "http://localhost:3000"
     demo_password: str | None = None
     session_cookie_name: str = "trustid_session"

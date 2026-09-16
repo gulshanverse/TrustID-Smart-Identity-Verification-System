@@ -210,7 +210,7 @@ No deployment claim is made beyond this boundary.
 | Real OCR benchmark | `PASS — 13 successful OCR executions; malformed PDF failed safely` |
 | Document-intelligence tests | `PASS — 7 passed` |
 | OCR/service integration tests | `PASS — included in 17 targeted tests` |
-| Full backend tests | `PASS — 82 passed, 115 warnings` |
+| Full backend tests | `PASS — 83 passed, 115 warnings` |
 | Ruff | `PASS — all checks passed` |
 | Mypy | `PASS — 60 source files` |
 | Frontend lint | `PASS` |

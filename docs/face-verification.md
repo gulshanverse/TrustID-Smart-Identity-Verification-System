@@ -4,7 +4,7 @@ Phase 8 adds a provider-neutral, photo-based face comparison foundation after do
 
 ## Provider and demo scenarios
 
-The domain contract accepts a document-face artifact, a presented-face artifact, and an explicit scenario. `DemoFaceVerificationProvider` is labeled `DEMO / SIMULATED` and uses deterministic fictional outcomes: `MATCH`, `MISMATCH`, `REVIEW`, `NO_FACE`, `MULTIPLE_FACES`, and `LOW_QUALITY`. The presented image and document must contain explicit fixture markers; arbitrary photos cannot be turned into a fabricated match. The demo comparison threshold is `0.80` on a `0.0`–`1.0` similarity scale. It is a provider demo threshold, not an official government or industry standard.
+The domain contract accepts a document-face artifact, a presented-face artifact, and an explicit scenario. `DemoFaceVerificationProvider` is labeled `DEMO / SIMULATED` and accepts the compatibility input scenarios `MATCH`, `MISMATCH`, `REVIEW`, `NO_FACE`, `MULTIPLE_FACES`, and `LOW_QUALITY`. Provider result outcomes are standardized as `MATCH`, `REVIEW`, `NO_MATCH`, and `NOT_AVAILABLE`; the `MISMATCH` input maps to the `NO_MATCH` result. The presented image and document must contain explicit fixture markers; arbitrary photos cannot be turned into a fabricated match. The demo comparison threshold is `0.80` on a `0.0`–`1.0` similarity scale. It is a provider demo threshold, not an official government or industry standard.
 
 Similarity means how similar the provider considers the two supplied face artifacts. Confidence means how confident the provider is in that comparison outcome. They are kept separate and are never combined with OCR confidence or tampering signals into a risk score.
 

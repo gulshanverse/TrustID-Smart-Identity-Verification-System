@@ -21,9 +21,9 @@ class FaceVerificationStatus(StrEnum):
 
 class FaceOutcome(StrEnum):
     MATCH = "MATCH"
-    MISMATCH = "MISMATCH"
+    NO_MATCH = "NO_MATCH"
     REVIEW = "REVIEW"
-    UNAVAILABLE = "UNAVAILABLE"
+    NOT_AVAILABLE = "NOT_AVAILABLE"
 
 
 class FaceQuality(StrEnum):
@@ -103,11 +103,11 @@ class DemoFaceVerificationProvider(FaceVerificationProvider):
             raise ValueError("The demo face provider only processes explicitly marked fixtures.")
         values = {
             FaceScenario.MATCH: (FaceOutcome.MATCH, 0.94, 0.91, "The presented face is sufficiently consistent with the document face under the configured comparison threshold.", None, FaceQuality.READY, 1),
-            FaceScenario.MISMATCH: (FaceOutcome.MISMATCH, 0.31, 0.94, "The compared faces did not meet the configured similarity threshold. Officer review is recommended.", None, FaceQuality.READY, 1),
+            FaceScenario.MISMATCH: (FaceOutcome.NO_MATCH, 0.31, 0.94, "The compared faces did not meet the configured similarity threshold. Officer review is recommended.", None, FaceQuality.READY, 1),
             FaceScenario.REVIEW: (FaceOutcome.REVIEW, 0.68, 0.62, "The comparison was inconclusive or did not meet the conditions for a reliable automated result.", "Comparison requires human review.", FaceQuality.READY, 1),
-            FaceScenario.NO_FACE: (FaceOutcome.UNAVAILABLE, None, None, "Face verification could not be completed.", "No usable face was detected.", FaceQuality.NO_FACE, 0),
-            FaceScenario.MULTIPLE_FACES: (FaceOutcome.UNAVAILABLE, None, None, "Face verification could not be completed.", "Multiple faces were detected. Please provide a clear single-person image.", FaceQuality.MULTIPLE_FACES, 2),
-            FaceScenario.LOW_QUALITY: (FaceOutcome.UNAVAILABLE, None, None, "Face verification could not be completed.", "The presented image does not meet the minimum quality requirements.", FaceQuality.LOW_QUALITY, 1),
+            FaceScenario.NO_FACE: (FaceOutcome.NOT_AVAILABLE, None, None, "Face verification could not be completed.", "No usable face was detected.", FaceQuality.NO_FACE, 0),
+            FaceScenario.MULTIPLE_FACES: (FaceOutcome.NOT_AVAILABLE, None, None, "Face verification could not be completed.", "Multiple faces were detected. Please provide a clear single-person image.", FaceQuality.MULTIPLE_FACES, 2),
+            FaceScenario.LOW_QUALITY: (FaceOutcome.NOT_AVAILABLE, None, None, "Face verification could not be completed.", "The presented image does not meet the minimum quality requirements.", FaceQuality.LOW_QUALITY, 1),
         }
         return values[scenario]
 
@@ -290,7 +290,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
             raise ValueError(f"Reference face unavailable: {document_reason}")
         presented_image, presented_quality, presented_reason, presented_count = self._analyze(presented_face)
         if presented_quality != FaceQuality.READY:
-            outcome = FaceOutcome.REVIEW if presented_quality == FaceQuality.MULTIPLE_FACES else FaceOutcome.UNAVAILABLE
+            outcome = FaceOutcome.REVIEW if presented_quality == FaceQuality.MULTIPLE_FACES else FaceOutcome.NOT_AVAILABLE
             return outcome, None, None, "Face verification could not produce a reliable comparison.", presented_reason, presented_quality, presented_count
         faces = self._faces(document_image)
         reference_rows = dict(self._face_rows) if self._yunet is not None else {}
@@ -306,7 +306,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         elif similarity >= self.review_threshold:
             outcome, summary = FaceOutcome.REVIEW, "Biometric similarity is within the review band; officer assessment is required."
         else:
-            outcome, summary = FaceOutcome.MISMATCH, "Biometric similarity is below the configured verification threshold."
+            outcome, summary = FaceOutcome.NO_MATCH, "Biometric similarity is below the configured verification threshold."
         return outcome, similarity, None, summary, None, presented_quality, presented_count
 
 

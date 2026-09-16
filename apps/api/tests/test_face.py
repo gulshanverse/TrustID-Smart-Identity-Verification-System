@@ -50,12 +50,13 @@ def service(db: Session, storage: ObjectStorage, scenario: FaceScenario = FaceSc
 
 
 def test_demo_provider_supports_all_deterministic_scenarios() -> None:
+    assert {outcome.value for outcome in FaceOutcome} == {"MATCH", "REVIEW", "NO_MATCH", "NOT_AVAILABLE"}
     for scenario in FaceScenario:
         first = DemoFaceVerificationProvider().compare(DOCUMENT, presented(scenario), scenario)
         second = DemoFaceVerificationProvider().compare(DOCUMENT, presented(scenario), scenario)
         assert first == second
         assert DemoFaceVerificationProvider.name == "DEMO / SIMULATED"
-        assert first[0] in {FaceOutcome.MATCH, FaceOutcome.MISMATCH, FaceOutcome.REVIEW, FaceOutcome.UNAVAILABLE}
+        assert first[0] in {FaceOutcome.MATCH, FaceOutcome.NO_MATCH, FaceOutcome.REVIEW, FaceOutcome.NOT_AVAILABLE}
 
 
 def test_configured_provider_is_cached_without_changing_explicit_mode() -> None:
@@ -89,7 +90,7 @@ def test_match_result_persists_without_biometric_material(db: Session) -> None:
 
 def test_mismatch_review_and_quality_results_remain_non_decisional(db: Session) -> None:
     actor, storage, document = prepared(db)
-    for scenario, outcome in ((FaceScenario.MISMATCH, FaceOutcome.MISMATCH), (FaceScenario.REVIEW, FaceOutcome.REVIEW), (FaceScenario.NO_FACE, FaceOutcome.UNAVAILABLE), (FaceScenario.MULTIPLE_FACES, FaceOutcome.UNAVAILABLE), (FaceScenario.LOW_QUALITY, FaceOutcome.UNAVAILABLE)):
+    for scenario, outcome in ((FaceScenario.MISMATCH, FaceOutcome.NO_MATCH), (FaceScenario.REVIEW, FaceOutcome.REVIEW), (FaceScenario.NO_FACE, FaceOutcome.NOT_AVAILABLE), (FaceScenario.MULTIPLE_FACES, FaceOutcome.NOT_AVAILABLE), (FaceScenario.LOW_QUALITY, FaceOutcome.NOT_AVAILABLE)):
         result = service(db, storage).process(document.id, actor, presented(scenario), "image/jpeg", scenario)
         assert result.outcome == outcome
         assert "fraud" not in result.summary.lower()

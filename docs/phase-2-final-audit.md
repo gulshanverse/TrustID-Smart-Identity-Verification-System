@@ -4,9 +4,9 @@
 
 **PHASE 2 — COMPLETE WITH DOCUMENTED EXTERNAL BLOCKERS**
 
-TrustID Phase 2 contains a real local production face-verification provider using OpenCV YuNet/Haar detection, quality gates, SFace embeddings, optional landmark alignment, cosine similarity, explicit match/review/no-match/unavailable semantics, model checksum validation, ownership checks, audit persistence, and no embedding persistence.
+TrustID Phase 2 contains a real local production face-verification provider using OpenCV YuNet/Haar detection, quality gates, SFace embeddings, optional landmark alignment, cosine similarity, explicit `MATCH`/`REVIEW`/`NO_MATCH`/`NOT_AVAILABLE` semantics, model checksum validation, ownership checks, audit persistence, and no embedding persistence.
 
-The strongest measured candidate is YuNet plus `FaceRecognizerSF.alignCrop` with a candidate blur threshold of 5.0. The complete LFW protocol produced 2,908/3,000 genuine scores and 2,844/3,000 impostor scores, with AUC 0.998223. These results are local, LFW-specific evidence and do not establish real-world biometric accuracy, fairness, liveness, legal approval, or production capacity.
+The strongest measured candidate is YuNet plus `FaceRecognizerSF.alignCrop` with a candidate blur threshold of 5.0. The current application default remains Haar with blur threshold 20.0. The production Docker candidate now explicitly sets `FACE_PROVIDER=production`, `FACE_DETECTOR=yunet`, detector score 0.90, minimum face pixels 6400, blur 5.0, brightness 35–225, contrast 18, box padding 0, and SFace threshold 0.363. This Docker candidate is not Render-validated and is not a claim of production readiness. The complete LFW protocol produced 2,908/3,000 genuine scores and 2,844/3,000 impostor scores, with AUC 0.998223. These results are local, LFW-specific evidence and do not establish real-world biometric accuracy, fairness, liveness, legal approval, or production capacity.
 
 The repository now includes a checksum-verifying production Docker image path, cached provider initialization, a process-local inference lock, synthetic operational testing, local concurrency measurement, model provenance documentation, and this final audit. Render execution, cross-dataset validation, demographic analysis, liveness/PAD, and legal model-provenance approval remain external blockers.
 
@@ -28,7 +28,7 @@ FaceVerificationProvider
         └── Safe result
 ```
 
-The API selects the provider explicitly from `FACE_PROVIDER`. The configured provider is cached once per API process, so production model weights are not reloaded per request. Production inference is serialized through a process-local lock because OpenCV detector state is mutable and the current deployment architecture uses one API instance.
+The API selects the provider explicitly from `FACE_PROVIDER`. The application defaults remain `FACE_PROVIDER=demo` and `FACE_DETECTOR=haar`; the production Docker candidate overrides these explicitly. The configured provider is cached once per API process, so production model weights are not reloaded per request. Production inference is serialized through a process-local lock because OpenCV detector state is mutable and the current deployment architecture uses one API instance.
 
 ## 3. Production Face Pipeline
 
@@ -41,12 +41,12 @@ The API selects the provider explicitly from `FACE_PROVIDER`. The configured pro
 | Alignment | YuNet five-point `alignCrop`; Haar crop-resize | PASS |
 | Embedding | OpenCV SFace, normalized 128-dimensional vector | PASS |
 | Similarity | Cosine similarity | PASS |
-| Decision | MATCH, REVIEW, MISMATCH, UNAVAILABLE | PASS |
+| Decision | MATCH, REVIEW, NO_MATCH, NOT_AVAILABLE | PASS |
 | Liveness | Explicitly unavailable | NOT_IMPLEMENTED |
 
 ## 4. Detector Decision
 
-The current compatible candidate is YuNet at confidence 0.90. Haar remains the safe existing default until deployment and broader validation criteria are met.
+The current application default is Haar at blur 20.0. The strongest measured candidate is YuNet at confidence 0.90 with blur 5.0. The production Docker candidate explicitly uses that YuNet configuration, but it remains unvalidated in Render and must not be treated as a production-validated configuration.
 
 The complete LFW comparison was:
 
@@ -218,10 +218,14 @@ The API distinguishes:
 
 - `MATCH`
 - `REVIEW`
-- `MISMATCH`
-- `UNAVAILABLE`
+- `NO_MATCH`
+- `NOT_AVAILABLE`
 
-Model unavailable and unusable input are not represented as `NO_MATCH`. Provider errors produce a safe unavailable response at the HTTP boundary. Demo and production provider labels remain explicit.
+Model unavailability and unusable input are not represented as `NO_MATCH`. Provider errors produce a safe `NOT_AVAILABLE` response at the HTTP boundary. Demo and production provider labels remain explicit.
+
+## 23.1 Configuration Consistency Decision
+
+The LFW benchmark does not need to be rerun. The benchmarked candidate already used YuNet, detector confidence 0.90, minimum face pixels 6400, blur threshold 5.0, brightness 35–225, contrast 18, zero padding, `alignCrop`, and SFace threshold 0.363. This correction makes those candidate settings explicit in the Docker environment; it does not change the measured algorithm or threshold.
 
 ## 22. Frontend Evidence
 

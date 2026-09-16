@@ -22,12 +22,18 @@ The API requires PostgreSQL, Redis configuration, and a private S3-compatible bu
 | `OBJECT_STORAGE_SECRET_KEY` | Provider secret; never commit it |
 | `OCR_PROVIDER` | `demo` |
 | `TAMPERING_PROVIDER` | `demo` |
-| `FACE_PROVIDER` | `demo` |
-| `FACE_DETECTOR` | `haar` by default; use `yunet` only after model provisioning and environment validation |
+| `FACE_PROVIDER` | `demo` in the local example; `production` is explicit in `apps/api/Dockerfile` |
+| `FACE_DETECTOR` | `haar` in application configuration; the production Docker candidate explicitly sets `yunet` |
 | `FACE_MODEL_PATH` | Pinned SFace path inside the production image when `FACE_PROVIDER=production` |
 | `FACE_MODEL_SHA256` | `0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79` |
 | `FACE_DETECTOR_MODEL_PATH` | Pinned YuNet path inside the production image when `FACE_DETECTOR=yunet` |
 | `FACE_DETECTOR_MODEL_SHA256` | `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4` |
+| `FACE_DETECTOR_SCORE_THRESHOLD` | `0.90` in the production Docker candidate |
+| `FACE_MIN_FACE_PIXELS` | `6400` in the production Docker candidate |
+| `FACE_BLUR_THRESHOLD` | `20.0` application default; `5.0` explicitly in the production Docker candidate |
+| `FACE_BRIGHTNESS_MIN` / `FACE_BRIGHTNESS_MAX` | `35` / `225` in the production Docker candidate |
+| `FACE_CONTRAST_MIN` | `18` in the production Docker candidate |
+| `FACE_BOX_PADDING` | `0.0` in the production Docker candidate |
 | `CORS_ORIGINS` | Exact HTTPS Vercel origin, comma-separated if required |
 | `DEMO_PASSWORD` | Private demo-only password, at least ten characters |
 | `SESSION_COOKIE_SECURE` | `true` |
@@ -63,6 +69,8 @@ uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 Configure the platform health check as `GET /api/v1/health`. It does not require authentication. The API reads database, Redis, storage, provider, CORS, and cookie settings from environment variables.
 
 The face provider is cached once per API process after configuration and uses a process-local inference lock. This prevents model reloading on every request and avoids concurrent mutation of OpenCV detector state. This is a safe single-instance optimization, not a horizontal-capacity guarantee.
+
+The **strongest measured candidate** is YuNet + `alignCrop` + blur threshold `5.0` on LFW. The **current application default** remains Haar + blur threshold `20.0` for backwards compatibility. The **production Docker candidate** is explicitly configured as YuNet + `alignCrop` + blur threshold `5.0`, but it is not yet a Render-validated production configuration.
 
 In `APP_ENV=production`, invalid or unavailable object-storage client initialization fails API startup instead of silently installing an unavailable-storage fallback. This makes Render deployment logs identify configuration/dependency failures before an upload request is attempted. Local development retains the unavailable-storage fallback for environments where MinIO is intentionally not running.
 

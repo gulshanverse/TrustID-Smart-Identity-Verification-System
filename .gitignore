@@ -16,3 +16,6 @@ __pycache__/
 # Local data volumes
 postgres_data/
 minio_data/
+
+# Locally provisioned biometric model weights; pin and provision separately.
+models/*.onnx

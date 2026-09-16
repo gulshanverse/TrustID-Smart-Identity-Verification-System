@@ -12,10 +12,35 @@ from app.domain.face import (
     FaceVerificationProvider,
     FaceVerificationResult,
     FaceVerificationStatus,
+    ProductionFaceVerificationProvider,
     new_face_result_id,
 )
 from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.services.forensics import inspect_document
+
+
+class ProductionDocumentFaceExtractor(DemoDocumentFaceExtractor):
+    """Extracts a reference face only from a supported passport image/PDF.
+
+    A reference is accepted only when the bounded document render contains exactly
+    one detectable face. Unsupported document types return NOT_AVAILABLE upstream.
+    """
+
+    def __init__(self, detector: ProductionFaceVerificationProvider) -> None:
+        self.detector = detector
+
+    def extract(self, document: DocumentRecord, content: bytes) -> tuple[FaceQuality, str]:
+        if document.document_type != DocumentType.PASSPORT:
+            return FaceQuality.UNSUPPORTED_IMAGE, "Reference face extraction is currently supported only for passports."
+        if document.mime_type == "application/pdf":
+            return FaceQuality.UNSUPPORTED_IMAGE, "Passport PDF portrait extraction is deferred until bounded rendering is enabled; use a passport image for production face verification."
+        try:
+            _, quality, reason, count = self.detector._analyze(content)
+        except ValueError as exc:
+            return FaceQuality.UNSUPPORTED_IMAGE, str(exc)
+        if count != 1:
+            return quality, reason
+        return quality, "A single passport portrait face was detected; no arbitrary face selection was performed."
 
 
 class FaceVerificationService:
@@ -23,9 +48,9 @@ class FaceVerificationService:
         self.storage = storage
         self.repository = repository
         self.provider = provider
-        self.extractor = DemoDocumentFaceExtractor()
+        self.extractor = DemoDocumentFaceExtractor() if provider.name == "DEMO / SIMULATED" else ProductionDocumentFaceExtractor(provider)  # type: ignore[arg-type]
 
-    def process(self, document_id: UUID, actor_id: UUID, presented_content: bytes, presented_mime: str, scenario: FaceScenario) -> FaceVerificationResult:
+    def process(self, document_id: UUID, actor_id: UUID, presented_content: bytes, presented_mime: str, scenario: FaceScenario = FaceScenario.MATCH) -> FaceVerificationResult:
         document = self.repository.get_document_for_owner(document_id, actor_id)
         if document is None:
             raise LookupError("Document not found or not ready for face verification.")
@@ -40,9 +65,14 @@ class FaceVerificationService:
             if document_quality != FaceQuality.READY:
                 raise ValueError(document_explanation)
             outcome, similarity, confidence, summary, failure_reason, presented_quality, face_count = self.provider.compare(document_content, presented_content, scenario)
-            evidence: tuple[FaceEvidence, ...] = (FaceEvidence("document_face", "AVAILABLE", document_explanation), FaceEvidence("presented_face", "AVAILABLE" if presented_quality == FaceQuality.READY else presented_quality.value, "Presented face is processed server-side and not retained."), FaceEvidence("face_count", str(face_count if face_count is not None else "unknown"), "Demo fixture face-count signal."), FaceEvidence("threshold", str(self.provider.threshold if hasattr(self.provider, "threshold") else "provider-defined"), "Configured provider comparison threshold; not an official standard."))
-            if failure_reason:
-                evidence = evidence + (FaceEvidence("quality", presented_quality.value, failure_reason),)
+            evidence: tuple[FaceEvidence, ...] = (
+                FaceEvidence("document_face", "DETECTED", document_explanation),
+                FaceEvidence("presented_face", "DETECTED" if presented_quality == FaceQuality.READY else presented_quality.value, "Presented face was processed in memory and is not retained."),
+                FaceEvidence("face_count", str(face_count if face_count is not None else "unknown"), "The provider did not select a face when multiple faces were detected."),
+                FaceEvidence("quality", presented_quality.value, failure_reason or "Presented face passed the provider quality gate."),
+                FaceEvidence("threshold", str(self.provider.threshold), "Provider-configured cosine-similarity threshold; not an identity or government standard."),
+                FaceEvidence("liveness", "NOT_IMPLEMENTED", "This Phase 2 service verifies face similarity only and does not detect liveness or presentation attacks."),
+            )
             now = datetime.now(UTC).isoformat()
             result = FaceVerificationResult(new_face_result_id(), document.verification_id, document_id, FaceVerificationStatus.COMPLETED, outcome, similarity, confidence, self.provider.name, self.provider.version, summary, failure_reason, document_quality, presented_quality, face_count, evidence, now, now)
             self.repository.add_result(result, actor_id)

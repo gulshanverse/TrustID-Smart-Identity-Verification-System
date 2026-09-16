@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     ocr_provider: str = "demo"
     tampering_provider: str = "demo"
     face_provider: str = "demo"
+    face_model_path: str = "models/face_recognition_sface_2021dec.onnx"
     cors_origins: str = "http://localhost:3000"
     demo_password: str | None = None
     session_cookie_name: str = "trustid_session"
@@ -36,6 +37,8 @@ class Settings(BaseSettings):
     def validate_deployment_security(self) -> "Settings":
         if self.ocr_provider.lower() not in {"demo", "production"}:
             raise ValueError("OCR_PROVIDER must be either demo or production.")
+        if self.face_provider.lower() not in {"demo", "production"}:
+            raise ValueError("FACE_VERIFICATION_PROVIDER must be either demo or production.")
         if self.app_env.lower() == "production":
             required = {
                 "DATABASE_URL": self.database_url,

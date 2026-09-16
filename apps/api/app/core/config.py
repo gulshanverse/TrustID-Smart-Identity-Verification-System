@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     tampering_provider: str = "demo"
     face_provider: str = "demo"
     face_model_path: str = "models/face_recognition_sface_2021dec.onnx"
+    face_model_sha256: str | None = None
     cors_origins: str = "http://localhost:3000"
     demo_password: str | None = None
     session_cookie_name: str = "trustid_session"

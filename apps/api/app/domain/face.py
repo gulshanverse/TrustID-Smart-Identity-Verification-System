@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -124,10 +125,16 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
     review_threshold = 0.30
     min_face_pixels = 80 * 80
 
-    def __init__(self, model_path: str | Path) -> None:
+    def __init__(self, model_path: str | Path, expected_sha256: str | None = None) -> None:
         self.model_path = Path(model_path)
         if not self.model_path.is_file():
             raise RuntimeError("The configured production face model is unavailable.")
+        if not self.model_path.stat().st_mode & 0o444:
+            raise RuntimeError("The configured production face model is not readable.")
+        actual_sha256 = hashlib.sha256(self.model_path.read_bytes()).hexdigest()
+        if expected_sha256 and actual_sha256.lower() != expected_sha256.lower():
+            raise RuntimeError("The configured production face model failed integrity verification.")
+        self.model_sha256 = actual_sha256
         try:
             cv2: Any = __import__("cv2")
         except ImportError as exc:  # pragma: no cover - environment-specific
@@ -158,7 +165,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
 
     def _faces(self, image: Any) -> list[tuple[int, int, int, int]]:
         gray = self._cv2.cvtColor(image, self._cv2.COLOR_BGR2GRAY)
-        faces = self._detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
+        faces = self._detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=12, minSize=(40, 40))
         return [(int(face[0]), int(face[1]), int(face[2]), int(face[3])) for face in faces]
 
     def _quality(self, image: Any, face: tuple[int, int, int, int]) -> tuple[FaceQuality, str]:
@@ -186,6 +193,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
         norm = float(np.linalg.norm(vector))
         if norm == 0:
             raise RuntimeError("The face model returned an invalid embedding.")
+        self.embedding_dimension = int(vector.size)
         return vector / norm
 
     def _analyze(self, content: bytes) -> tuple[Any, FaceQuality, str, int]:
@@ -218,7 +226,7 @@ class ProductionFaceVerificationProvider(FaceVerificationProvider):
             outcome, summary = FaceOutcome.REVIEW, "Biometric similarity is within the review band; officer assessment is required."
         else:
             outcome, summary = FaceOutcome.MISMATCH, "Biometric similarity is below the configured verification threshold."
-        return outcome, similarity, similarity, summary, None, presented_quality, presented_count
+        return outcome, similarity, None, summary, None, presented_quality, presented_count
 
 
 def new_face_result_id() -> UUID:

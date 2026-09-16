@@ -1,0 +1,33 @@
+{
+  "provider_initialized": true,
+  "model_sha256": "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79",
+  "results": [
+    {
+      "label": "genuine",
+      "outcome": "MATCH",
+      "similarity": 0.9796227216720581,
+      "provider": "REAL AI / PRODUCTION",
+      "face_count": 1,
+      "quality": "READY"
+    },
+    {
+      "label": "impostor",
+      "outcome": "MATCH",
+      "similarity": 0.7345842719078064,
+      "provider": "REAL AI / PRODUCTION",
+      "face_count": 1,
+      "quality": "READY"
+    }
+  ],
+  "persisted_result_count": 2,
+  "audit_events": [
+    "DOCUMENT_UPLOADED",
+    "FACE_VERIFICATION_STARTED",
+    "FACE_VERIFICATION_COMPLETED",
+    "FACE_VERIFICATION_STARTED",
+    "FACE_VERIFICATION_COMPLETED"
+  ],
+  "embeddings_persisted": false,
+  "elapsed_ms": 2621.9755209999676,
+  "peak_rss_kb": 325552
+}

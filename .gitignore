@@ -19,3 +19,4 @@ minio_data/
 
 # Locally provisioned biometric model weights; pin and provision separately.
 models/*.onnx
+benchmarks/synthetic_faces/

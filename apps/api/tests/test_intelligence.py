@@ -117,8 +117,8 @@ def test_verification_orchestration_persists_risk_and_audit_events(db: Session) 
     assert db.scalar(select(FaceVerificationModel).where(FaceVerificationModel.document_id == document.id)) is not None
     events = db.scalars(select(AuditEventModel).where(AuditEventModel.verification_id == verification.id)).all()
     event_types = {event.event_type for event in events}
-    assert {"OCR_COMPLETED", "TAMPERING_COMPLETED", "FACE_VERIFICATION_COMPLETED", "DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED"} <= event_types
-    assert [event.event_type for event in events][-4:] == ["DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED"] or events[-1].event_type == "VERIFICATION_ANALYSIS_COMPLETED"
+    assert {"OCR_COMPLETED", "TAMPERING_COMPLETED", "FACE_VERIFICATION_COMPLETED", "DOCUMENT_VALIDATION_COMPLETED", "RISK_ASSESSMENT_COMPLETED", "VERIFICATION_ANALYSIS_COMPLETED", "VERIFICATION_CORRELATION_COMPLETED"} <= event_types
+    assert events[-1].event_type == "VERIFICATION_CORRELATION_COMPLETED"
     cases = SqlAlchemyCaseRepository(db)
     case = cases.create_case(verification.id, actor, "Fictional demo officer case", "DEMO / SIMULATED case for human decision.", CasePriority.MEDIUM)
     case_model = cases.get(case.id, actor)

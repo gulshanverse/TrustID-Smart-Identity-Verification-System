@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import AuditEventModel, VerificationModel
 from app.domain.documents import DocumentLifecycle, DocumentRecord, DocumentType
+from app.domain.evidence import CorrelationResult, correlate
 from app.domain.face import FaceVerificationResult
 from app.domain.ocr import OCRResult
 from app.domain.risk import RiskAssessmentResult, assess_risk
@@ -33,6 +34,7 @@ class VerificationAnalysisResult:
     tampering: TamperingResult
     face: FaceVerificationResult
     risk: RiskAssessmentResult
+    correlation: CorrelationResult
 
 
 class VerificationAnalysisService:
@@ -76,7 +78,7 @@ class VerificationAnalysisService:
         existing_validation = self.intelligence.latest_validation(document.id)
         existing_risk = self.intelligence.latest_risk(verification_id, self.actor_id)
         if existing_validation is not None and existing_risk is not None:
-            return VerificationAnalysisResult(verification_id, document.id, ocr, existing_validation, tampering, face, existing_risk)
+            return VerificationAnalysisResult(verification_id, document.id, ocr, existing_validation, tampering, face, existing_risk, correlate(verification_id, ocr, existing_validation, tampering, face, existing_risk))
 
         now = datetime.now(UTC)
         verification.status = "PROCESSING"
@@ -95,11 +97,13 @@ class VerificationAnalysisService:
             self.intelligence.add_validation(validation, self.actor_id)
             self.intelligence.commit()
             risk = assess_risk(verification_id, validation, tampering, face, ocr.overall_confidence)
+            correlation = correlate(verification_id, ocr, validation, tampering, face, risk)
             self.intelligence.add_risk(risk, self.actor_id)
             verification.status = "COMPLETED"
             self.db.add(AuditEventModel(event_type="VERIFICATION_ANALYSIS_COMPLETED", actor_id=self.actor_id, verification_id=verification_id, document_id=document.id, risk_assessment_id=risk.id, status="COMPLETED", created_at=datetime.now(UTC)))
+            self.db.add(AuditEventModel(event_type="VERIFICATION_CORRELATION_COMPLETED", actor_id=self.actor_id, verification_id=verification_id, document_id=document.id, risk_assessment_id=risk.id, status="COMPLETED", provider="deterministic-correlation-engine", created_at=datetime.now(UTC)))
             self.intelligence.commit()
-            return VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk)
+            return VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk, correlation)
         except Exception as exc:
             self.intelligence.rollback()
             verification = self.db.scalar(select(VerificationModel).where(VerificationModel.id == verification_id, VerificationModel.owner_id == self.actor_id))

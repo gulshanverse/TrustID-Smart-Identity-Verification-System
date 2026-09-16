@@ -7,15 +7,19 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_permission
 from app.api.intelligence_schemas import (
+    EvidenceProvenanceResponse,
+    EvidenceResponse,
     ModuleStatusResponse,
     RiskFactorResponse,
     RiskResponse,
     ValidationFindingResponse,
     ValidationResponse,
     VerificationAnalysisResponse,
+    VerificationFindingResponse,
 )
 from app.db.session import get_db
 from app.domain.auth import Permission
+from app.domain.evidence import correlate
 from app.domain.risk import RiskAssessmentResult
 from app.domain.validation import DocumentValidationResult
 from app.repositories.face_repository import SqlAlchemyFaceRepository
@@ -41,7 +45,9 @@ def validation_response(result: DocumentValidationResult) -> ValidationResponse:
 
 def analysis_response(result: VerificationAnalysisResult) -> VerificationAnalysisResponse:
     modules = [ModuleStatusResponse(name="OCR", status=result.ocr.status.value, summary="Structured text extraction completed."), ModuleStatusResponse(name="Document validation", status=result.validation.status.value, summary=result.validation.summary), ModuleStatusResponse(name="Tampering", status=result.tampering.status.value, summary=result.tampering.summary), ModuleStatusResponse(name="Face verification", status=result.face.outcome.value, summary=result.face.summary), ModuleStatusResponse(name="Risk assessment", status=result.risk.risk_level.value, summary=result.risk.recommendation)]
-    return VerificationAnalysisResponse(verification_id=result.verification_id, document_id=result.document_id, status="COMPLETED", modules=modules, validation=validation_response(result.validation), risk=risk_response(result.risk))
+    evidence = [EvidenceResponse(evidence_id=item.evidence_id, source_module=item.source_module, evidence_type=item.evidence_type, status=item.status.value, severity=item.severity.value, confidence=item.confidence, score=item.score, explanation=item.explanation, reason_code=item.reason_code, provenance=EvidenceProvenanceResponse(module=item.provenance.module, provider=item.provenance.provider, version=item.provenance.version, rule=item.provenance.rule), created_at=item.created_at) for item in result.correlation.evidence]
+    findings = [VerificationFindingResponse(finding_id=item.finding_id, code=item.code, status=item.status.value, severity=item.severity.value, title=item.title, explanation=item.explanation, evidence_ids=list(item.evidence_ids), provenance=EvidenceProvenanceResponse(module=item.provenance.module, provider=item.provenance.provider, version=item.provenance.version, rule=item.provenance.rule), risk_contribution=item.risk_contribution, created_at=item.created_at) for item in result.correlation.findings]
+    return VerificationAnalysisResponse(verification_id=result.verification_id, document_id=result.document_id, status="COMPLETED", modules=modules, validation=validation_response(result.validation), risk=risk_response(result.risk), correlation_summary=result.correlation.summary, evidence=evidence, findings=findings)
 
 
 def latest_result(verification_id: UUID, user: AuthUser, db: Session) -> VerificationAnalysisResponse:
@@ -54,7 +60,7 @@ def latest_result(verification_id: UUID, user: AuthUser, db: Session) -> Verific
     face = None if document is None else SqlAlchemyFaceRepository(db).get_latest_for_owner(document.id, user.id)
     if document is None or risk is None or validation is None or ocr is None or tampering is None or face is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Verification analysis result not found or is incomplete.")
-    return analysis_response(VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk))
+    return analysis_response(VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk, correlate(verification_id, ocr, validation, tampering, face, risk)))
 
 
 @router.post("/{verification_id}/analyze", response_model=VerificationAnalysisResponse, status_code=status.HTTP_201_CREATED)

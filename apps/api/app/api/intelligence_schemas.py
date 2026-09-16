@@ -51,6 +51,40 @@ class RiskResponse(BaseModel):
     factors: list[RiskFactorResponse]
 
 
+class EvidenceProvenanceResponse(BaseModel):
+    module: str
+    provider: str
+    version: str
+    rule: str | None
+
+
+class EvidenceResponse(BaseModel):
+    evidence_id: UUID
+    source_module: str
+    evidence_type: str
+    status: str
+    severity: str
+    confidence: float | None
+    score: float | None
+    explanation: str
+    reason_code: str
+    provenance: EvidenceProvenanceResponse
+    created_at: str
+
+
+class VerificationFindingResponse(BaseModel):
+    finding_id: UUID
+    code: str
+    status: str
+    severity: str
+    title: str
+    explanation: str
+    evidence_ids: list[UUID]
+    provenance: EvidenceProvenanceResponse
+    risk_contribution: int
+    created_at: str
+
+
 class VerificationAnalysisResponse(BaseModel):
     verification_id: UUID
     document_id: UUID
@@ -58,3 +92,6 @@ class VerificationAnalysisResponse(BaseModel):
     modules: list[ModuleStatusResponse]
     validation: ValidationResponse
     risk: RiskResponse
+    correlation_summary: str
+    evidence: list[EvidenceResponse]
+    findings: list[VerificationFindingResponse]

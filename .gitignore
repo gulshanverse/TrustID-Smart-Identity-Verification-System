@@ -23,3 +23,14 @@ benchmarks/synthetic_faces/
 benchmarks/datasets/*
 !benchmarks/datasets/
 !benchmarks/datasets/README.md
+benchmarks/raw/
+benchmarks/cache/
+benchmarks/**/*.tgz
+benchmarks/**/*.tar.gz
+benchmarks/**/*.zip
+benchmarks/**/*.jpg
+benchmarks/**/*.jpeg
+benchmarks/**/*.png
+benchmarks/**/*.webp
+benchmarks/**/*.npz
+benchmarks/**/*.npy

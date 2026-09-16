@@ -28,6 +28,10 @@ dev = [
   "ruff>=0.6,<1.0",
   "mypy>=1.11,<2.0",
 ]
+benchmark = [
+  "scikit-learn>=1.5,<2.0",
+  "matplotlib>=3.9,<4.0",
+]
 
 [build-system]
 requires = ["setuptools>=68"]

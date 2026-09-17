@@ -50,6 +50,21 @@ class VerificationModel(Base):
     cases: Mapped[list[CaseModel]] = relationship(back_populates="verification", cascade="all, delete-orphan")
 
 
+class ExternalVerificationModel(Base):
+    __tablename__ = "external_verifications"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    verification_id: Mapped[UUID] = mapped_column(ForeignKey("verifications.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    provider: Mapped[str] = mapped_column(String(128), nullable=False)
+    provider_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    reason: Mapped[str] = mapped_column(String, nullable=False)
+    query_reference: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    response_timestamp: Mapped[str] = mapped_column(String(64), nullable=False)
+    demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+
 class DocumentModel(Base):
     __tablename__ = "documents"
 

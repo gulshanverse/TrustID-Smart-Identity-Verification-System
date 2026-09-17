@@ -12,6 +12,7 @@ from app.api.v1.audit import router as audit_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.cases import router as cases_router
 from app.api.v1.console import router as console_router
+from app.api.v1.decision_intelligence import router as decision_intelligence_router
 from app.api.v1.documents import documents_router
 from app.api.v1.documents import router as document_router
 from app.api.v1.external import router as external_router
@@ -101,6 +102,7 @@ app.include_router(tampering_router, prefix="/api/v1")
 app.include_router(face_router, prefix="/api/v1")
 app.include_router(external_router, prefix="/api/v1")
 app.include_router(intelligence_router, prefix="/api/v1")
+app.include_router(decision_intelligence_router, prefix="/api/v1")
 app.include_router(cases_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")

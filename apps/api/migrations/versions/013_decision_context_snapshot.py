@@ -4,6 +4,7 @@ Revision ID: 013_decision_context_snapshot
 Revises: 012_external_verification_results
 """
 from collections.abc import Sequence
+
 import sqlalchemy as sa
 from alembic import op
 

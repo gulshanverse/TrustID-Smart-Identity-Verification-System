@@ -4,6 +4,7 @@ Revision ID: 011_phase5_rule_metadata
 Revises: 010_ocr_intelligence_metadata
 """
 from collections.abc import Sequence
+
 import sqlalchemy as sa
 from alembic import op
 

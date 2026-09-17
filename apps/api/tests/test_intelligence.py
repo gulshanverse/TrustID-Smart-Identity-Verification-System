@@ -159,3 +159,16 @@ def test_orchestration_marks_missing_modules_unavailable(db: Session) -> None:
     assert "unavailable" in factors["ocr"]
     assert "unavailable" in factors["tampering"]
     assert "inconsistency detected" not in factors["tampering"]
+
+
+def test_orchestration_rejects_duplicate_processing_claim(db: Session) -> None:
+    actor = uuid4()
+    documents = DocumentService(InMemoryObjectStorage(), SqlAlchemyDocumentRepository(db))
+    verification = documents.create_verification(actor, f"phase7-processing-{actor}@example.test", "Officer")
+    documents.upload(verification.id, actor, "processing.pdf", "application/pdf", b"%PDF-1.7\nprocessing", DocumentType.PASSPORT)
+    model = db.scalar(select(VerificationModel).where(VerificationModel.id == verification.id))
+    assert model is not None
+    model.status = "PROCESSING"
+    db.commit()
+    with pytest.raises(RuntimeError, match="already in progress"):
+        VerificationAnalysisService(db, actor).analyze(verification.id)

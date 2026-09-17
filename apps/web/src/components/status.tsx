@@ -2,7 +2,7 @@ import { AlertTriangle, CheckCircle2, CircleHelp, FileCheck2, ShieldCheck, UserC
 import type { ReactNode } from "react";
 import { Badge } from "./ui";
 
-const processingLabels: Record<string, string> = { CREATED: "Created", UPLOADED: "Uploaded", QUALITY_CHECK: "Quality check", OCR_PROCESSING: "OCR processing", VALIDATING: "Validating", TAMPERING_ANALYSIS: "Tampering analysis", FACE_VERIFICATION: "Face verification", RISK_ASSESSMENT: "Risk assessment", COMPLETED: "Completed", FAILED: "Failed", REQUIRES_REVIEW: "Requires review", CANCELLED: "Cancelled" };
+const processingLabels: Record<string, string> = { CREATED: "Created", UPLOADED: "Uploaded", QUALITY_CHECK: "Quality check", OCR_PROCESSING: "OCR processing", VALIDATING: "Validating", TAMPERING_ANALYSIS: "Tampering analysis", FACE_VERIFICATION: "Face verification", RISK_ASSESSMENT: "Risk assessment", COMPLETED: "Completed", PARTIAL: "Partial evidence", FAILED: "Failed", ERROR: "Error", UNKNOWN: "Unknown", NOT_AVAILABLE: "Not available", REQUIRES_REVIEW: "Requires review", CANCELLED: "Cancelled" };
 
 export function TrustIDLogo({ compact = false }: { compact?: boolean }) {
   return <div className="brand" aria-label="TrustID — Smart Identity Verification"><span className="brand-mark"><ShieldCheck size={20} strokeWidth={2.2} /></span>{!compact && <span><strong>TrustID</strong><small>Smart Identity Verification</small></span>}</div>;
@@ -15,7 +15,7 @@ export function StatusBadge({ status, label }: { status: "verified" | "review" |
   return <span className={`status-badge status-${status}`}><Icon size={15} aria-hidden="true" />{label}</span>;
 }
 
-export function ProcessingStatus({ state }: { state: string }) { return <StatusBadge status={state === "COMPLETED" ? "verified" : state === "FAILED" ? "danger" : state === "REQUIRES_REVIEW" ? "review" : "info"} label={processingLabels[state] ?? state} />; }
+export function ProcessingStatus({ state }: { state: string }) { return <StatusBadge status={state === "COMPLETED" ? "verified" : state === "FAILED" || state === "ERROR" ? "danger" : state === "REQUIRES_REVIEW" || state === "PARTIAL" ? "review" : "info"} label={processingLabels[state] ?? state} />; }
 
 export function RiskBadge({ level }: { level: "LOW" | "REVIEW" | "HIGH" }) { return <StatusBadge status={level === "LOW" ? "verified" : level === "REVIEW" ? "review" : "danger"} label={`${level} RISK`} />; }
 

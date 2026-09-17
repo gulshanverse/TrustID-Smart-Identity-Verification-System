@@ -4,6 +4,7 @@ Revision ID: 012_external_verification_results
 Revises: 011_phase5_rule_metadata
 """
 from collections.abc import Sequence
+
 import sqlalchemy as sa
 from alembic import op
 

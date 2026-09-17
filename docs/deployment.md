@@ -51,7 +51,7 @@ cd apps/api
 alembic upgrade head
 ```
 
-The migration chain currently ends at `009_verification_lifecycle`. The CI-safe validation command is:
+The migration chain currently ends at `014_auth_and_idempotency_integrity`. The CI-safe validation command is:
 
 ```bash
 alembic upgrade --sql head
@@ -66,7 +66,7 @@ cd apps/api
 uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
-Configure the platform health check as `GET /api/v1/health`. It does not require authentication. The API reads database, Redis, storage, provider, CORS, and cookie settings from environment variables.
+Configure the platform liveness check as `GET /api/v1/health` and, where the platform supports it, readiness as `GET /api/v1/readiness`. Neither requires authentication. Liveness checks only the process; readiness checks the required relational database and returns a generic `503` when it is unavailable. The API reads database, Redis, storage, provider, CORS, and cookie settings from environment variables.
 
 The face provider is cached once per API process after configuration and uses a process-local inference lock. This prevents model reloading on every request and avoids concurrent mutation of OpenCV detector state. This is a safe single-instance optimization, not a horizontal-capacity guarantee.
 
@@ -90,7 +90,7 @@ Use a private bucket and do not expose MinIO publicly. The API uses UUID-derived
 
 Keep all three processing providers set to `demo`. Do not connect government databases, real identity systems, production biometric providers, or invented APIs. Arbitrary real uploads must not be presented as verified identities. Reports and analytics remain decision-support output with explicit disclaimers.
 
-Authentication and session storage are in-process. This is acceptable only for a **single backend instance** during the SIH demonstration. Do not enable autoscaling or multiple replicas. A persistent authentication/session implementation is required before any real production use.
+Authentication users, sessions, and idempotency protections are persisted in the database. Horizontal deployment still requires managed PostgreSQL transaction behavior, shared private object storage, and deployment-specific validation; do not claim multi-replica readiness solely from local tests.
 
 ## Readiness checklist
 
@@ -101,7 +101,7 @@ Authentication and session storage are in-process. This is acceptable only for a
 | Database and migrations | Ready | Run `alembic upgrade head` against managed PostgreSQL |
 | Redis | Ready with configuration | Runtime currently reserves Redis for coordination; provide the managed URL |
 | Object storage | Ready with configuration | Private S3-compatible bucket and region required |
-| Authentication | Ready with condition | One API instance only; in-process sessions are not horizontally scalable |
+| Authentication | Ready with condition | DB-backed sessions and idempotency are implemented; validate managed PostgreSQL behavior before horizontal deployment |
 | CORS and cookies | Ready with configuration | Exact HTTPS origin, secure cookies, SameSite=None cross-site |
 | Demo safety | Ready | Keep deterministic demo providers and fictional data |
 | Production face image | Ready for controlled image build | Use `apps/api/Dockerfile`; model checksum is verified during build |

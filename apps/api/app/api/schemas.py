@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HealthResponse(BaseModel):
@@ -7,6 +7,8 @@ class HealthResponse(BaseModel):
     status: str
     service: str
     environment: str
+    version: str = "0.1.0"
+    checks: dict[str, str] = Field(default_factory=dict)
 
 
 class ErrorResponse(BaseModel):

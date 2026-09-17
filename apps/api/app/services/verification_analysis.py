@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.db.models import AuditEventModel, VerificationModel
@@ -24,6 +26,8 @@ from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.repositories.intelligence_repository import SqlAlchemyIntelligenceRepository
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
 from app.repositories.tampering_repository import SqlAlchemyTamperingRepository
+
+logger = logging.getLogger("trustid.verification.analysis")
 
 
 @dataclass(frozen=True)
@@ -54,6 +58,7 @@ class VerificationAnalysisService:
         self.db.commit()
 
     def analyze(self, verification_id: UUID) -> VerificationAnalysisResult:
+        started = time.perf_counter()
         document = self.intelligence.get_document_for_verification_owner(verification_id, self.actor_id)
         verification = self.db.scalar(select(VerificationModel).where(
             VerificationModel.id == verification_id, VerificationModel.owner_id == self.actor_id,
@@ -76,7 +81,27 @@ class VerificationAnalysisService:
         existing_validation = self.intelligence.latest_validation(document.id)
         existing_risk = self.intelligence.latest_risk(verification_id, self.actor_id)
         if existing_validation is not None and existing_risk is not None:
+            logger.info(
+                "verification_analysis_idempotent verification_id=%s outcome=COMPLETED duration_ms=%.2f",
+                verification_id,
+                (time.perf_counter() - started) * 1000,
+            )
             return VerificationAnalysisResult(verification_id, document.id, ocr, existing_validation, tampering, face, existing_risk, correlate(verification_id, ocr, existing_validation, tampering, face, existing_risk))
+
+        claim = self.db.execute(
+            update(VerificationModel)
+            .where(
+                VerificationModel.id == verification_id,
+                VerificationModel.owner_id == self.actor_id,
+                VerificationModel.status.in_(["PENDING", "FAILED"]),
+            )
+            .values(status="PROCESSING")
+        )
+        if getattr(claim, "rowcount", 0) != 1:
+            current = self.db.scalar(select(VerificationModel).where(VerificationModel.id == verification_id, VerificationModel.owner_id == self.actor_id))
+            if current is not None and current.status == "PROCESSING":
+                raise RuntimeError("Verification analysis is already in progress.")
+            raise RuntimeError("Verification is not available for analysis in its current state.")
 
         now = datetime.now(UTC)
         verification.status = "PROCESSING"
@@ -101,6 +126,14 @@ class VerificationAnalysisService:
             self.db.add(AuditEventModel(event_type="VERIFICATION_ANALYSIS_COMPLETED", actor_id=self.actor_id, verification_id=verification_id, document_id=document.id, risk_assessment_id=risk.id, status="COMPLETED", created_at=datetime.now(UTC)))
             self.db.add(AuditEventModel(event_type="VERIFICATION_CORRELATION_COMPLETED", actor_id=self.actor_id, verification_id=verification_id, document_id=document.id, risk_assessment_id=risk.id, status="COMPLETED", provider="deterministic-correlation-engine", created_at=datetime.now(UTC)))
             self.intelligence.commit()
+            logger.info(
+                "verification_analysis_completed verification_id=%s status=%s risk_level=%s duration_ms=%.2f providers=%s",
+                verification_id,
+                "COMPLETED",
+                risk.risk_level.value,
+                (time.perf_counter() - started) * 1000,
+                f"{ocr.provider},{self.validation_provider.name},{tampering.provider},{face.provider}",
+            )
             return VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk, correlation)
         except Exception as exc:
             self.intelligence.rollback()
@@ -109,4 +142,10 @@ class VerificationAnalysisService:
                 verification.status = "FAILED"
             self.db.add(AuditEventModel(event_type="VERIFICATION_ANALYSIS_FAILED", actor_id=self.actor_id, verification_id=verification_id, document_id=document.id, status="FAILED", created_at=datetime.now(UTC)))
             self.intelligence.commit()
+            logger.warning(
+                "verification_analysis_failed verification_id=%s status=FAILED error_type=%s duration_ms=%.2f",
+                verification_id,
+                type(exc).__name__,
+                (time.perf_counter() - started) * 1000,
+            )
             raise RuntimeError("Verification analysis could not be completed.") from exc

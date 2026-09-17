@@ -151,6 +151,7 @@ def test_orchestration_marks_missing_modules_unavailable(db: Session) -> None:
     documents.upload(verification.id, actor, "missing.pdf", "application/pdf", b"%PDF-1.7\npartial-evidence", DocumentType.PASSPORT)
     result = VerificationAnalysisService(db, actor).analyze(verification.id)
     assert result.ocr.provider == "UNAVAILABLE"
+    assert result.ocr.status.value == "NOT_AVAILABLE"
     assert result.tampering.status.value == "NOT_AVAILABLE"
     assert result.face.outcome.value == "NOT_AVAILABLE"
     assert any(item.status.value == "NOT_AVAILABLE" for item in result.correlation.evidence)

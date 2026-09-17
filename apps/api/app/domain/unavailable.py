@@ -13,7 +13,7 @@ def unavailable_id(verification_id: UUID, module: str) -> UUID:
 
 
 def unavailable_ocr(verification_id: UUID, document_id: UUID) -> OCRResult:
-    return OCRResult(unavailable_id(verification_id, "ocr"), document_id, OCRStatus.FAILED, "", "", 0.0, "UNAVAILABLE", "none", (), "", "")
+    return OCRResult(unavailable_id(verification_id, "ocr"), document_id, OCRStatus.NOT_AVAILABLE, "", "", 0.0, "UNAVAILABLE", "none", (), "", "")
 
 
 def unavailable_validation(verification_id: UUID, document_id: UUID) -> DocumentValidationResult:

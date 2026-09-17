@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     face_provider: str = "demo"
     external_verification_provider: str = "production"
     external_verification_timeout_seconds: float = 10.0
+    analysis_processing_timeout_seconds: float = 1800.0
     face_model_path: str = "models/face_recognition_sface_2021dec.onnx"
     face_model_sha256: str | None = None
     face_detector: str = "haar"
@@ -56,6 +57,8 @@ class Settings(BaseSettings):
             raise ValueError("EXTERNAL_VERIFICATION_PROVIDER must be either demo or production.")
         if not 1 <= self.external_verification_timeout_seconds <= 60:
             raise ValueError("EXTERNAL_VERIFICATION_TIMEOUT_SECONDS must be between 1 and 60.")
+        if not 60 <= self.analysis_processing_timeout_seconds <= 86400:
+            raise ValueError("ANALYSIS_PROCESSING_TIMEOUT_SECONDS must be between 60 and 86400.")
         if self.app_env.lower() == "production":
             required = {
                 "DATABASE_URL": self.database_url,

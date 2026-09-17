@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -9,6 +9,7 @@ from app.db.models import (
     AuditEventModel,
     Base,
     CaseModel,
+    DocumentValidationModel,
     FaceVerificationModel,
     OCRResultModel,
     RiskAssessmentModel,
@@ -172,3 +173,77 @@ def test_orchestration_rejects_duplicate_processing_claim(db: Session) -> None:
     db.commit()
     with pytest.raises(RuntimeError, match="already in progress"):
         VerificationAnalysisService(db, actor).analyze(verification.id)
+
+
+def test_analysis_failure_rolls_back_validation_and_retry_is_clean(db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+    actor = uuid4()
+    documents = DocumentService(InMemoryObjectStorage(), SqlAlchemyDocumentRepository(db))
+    verification = documents.create_verification(actor, f"rollback-{actor}@example.test", "Officer")
+    document = documents.upload(
+        verification.id,
+        actor,
+        "rollback.pdf",
+        "application/pdf",
+        b"%PDF-1.7\nrollback-after-validation",
+        DocumentType.PASSPORT,
+    )
+
+    import app.services.verification_analysis as analysis_module
+
+    original_assess_risk = analysis_module.assess_risk
+
+    def fail_after_validation(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("forced risk failure")
+
+    monkeypatch.setattr(analysis_module, "assess_risk", fail_after_validation)
+    with pytest.raises(RuntimeError, match="could not be completed"):
+        VerificationAnalysisService(db, actor).analyze(verification.id)
+
+    failed = db.get(VerificationModel, verification.id)
+    assert failed is not None
+    assert failed.status == "FAILED"
+    assert failed.processing_started_at is None
+    assert db.scalar(select(DocumentValidationModel).where(DocumentValidationModel.document_id == document.id)) is None
+    assert db.scalars(select(RiskAssessmentModel).where(RiskAssessmentModel.verification_id == verification.id)).all() == []
+    analysis_events = [
+        event.event_type
+        for event in db.scalars(select(AuditEventModel).where(AuditEventModel.verification_id == verification.id)).all()
+        if event.event_type.startswith("VERIFICATION_ANALYSIS_")
+    ]
+    assert analysis_events == [
+        "VERIFICATION_ANALYSIS_STARTED",
+        "VERIFICATION_ANALYSIS_FAILED",
+    ]
+
+    monkeypatch.setattr(analysis_module, "assess_risk", original_assess_risk)
+    result = VerificationAnalysisService(db, actor).analyze(verification.id)
+    assert result.risk.id is not None
+    assert len(db.scalars(select(DocumentValidationModel).where(DocumentValidationModel.document_id == document.id)).all()) == 1
+    assert len(db.scalars(select(RiskAssessmentModel).where(RiskAssessmentModel.verification_id == verification.id)).all()) == 1
+    assert len(db.scalars(select(AuditEventModel).where(AuditEventModel.verification_id == verification.id, AuditEventModel.event_type == "VERIFICATION_ANALYSIS_COMPLETED")).all()) == 1
+
+
+def test_stale_processing_recovery_is_conditional_and_audited(db: Session) -> None:
+    actor = uuid4()
+    documents = DocumentService(InMemoryObjectStorage(), SqlAlchemyDocumentRepository(db))
+    verification = documents.create_verification(actor, f"stale-{actor}@example.test", "Officer")
+    documents.upload(verification.id, actor, "stale.pdf", "application/pdf", b"%PDF-1.7\nstale", DocumentType.PASSPORT)
+    model = db.get(VerificationModel, verification.id)
+    assert model is not None
+    model.status = "PROCESSING"
+    model.processing_started_at = datetime.now(UTC) - timedelta(hours=2)
+    db.commit()
+
+    service = VerificationAnalysisService(db, actor)
+    service.recover_stale_processing(verification.id)
+    recovered = db.get(VerificationModel, verification.id)
+    assert recovered is not None
+    assert recovered.status == "FAILED"
+    assert recovered.processing_started_at is None
+    assert db.scalar(select(AuditEventModel).where(AuditEventModel.verification_id == verification.id, AuditEventModel.event_type == "VERIFICATION_PROCESSING_RECOVERED")) is not None
+
+    recovered.status = "COMPLETED"
+    db.commit()
+    with pytest.raises(RuntimeError, match="not stale"):
+        service.recover_stale_processing(verification.id)
+    assert db.get(VerificationModel, verification.id).status == "COMPLETED"

@@ -88,6 +88,14 @@ def analyze(verification_id: UUID, user: AuthUser = Depends(require_permission(P
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 
+@router.post("/{verification_id}/recover-stale", status_code=status.HTTP_204_NO_CONTENT)
+def recover_stale(verification_id: UUID, user: AuthUser = Depends(require_permission(Permission.VERIFICATION_WORKFLOW)), db: Session = Depends(get_db)) -> None:
+    try:
+        VerificationAnalysisService(db, user.id).recover_stale_processing(verification_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
 @router.get("/{verification_id}/result", response_model=VerificationAnalysisResponse)
 def result(verification_id: UUID, user: AuthUser = Depends(require_permission(Permission.DOCUMENT_READ)), db: Session = Depends(get_db)) -> VerificationAnalysisResponse:
     return latest_result(verification_id, user, db)

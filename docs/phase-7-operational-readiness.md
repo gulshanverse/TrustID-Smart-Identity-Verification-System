@@ -15,7 +15,9 @@ Verification analysis uses the existing persisted verification lifecycle with de
 | `COMPLETED` | Risk and correlation results were persisted successfully. A completed result may still contain explicit `NOT_AVAILABLE` evidence for optional capabilities. |
 | `FAILED` | An attempted analysis failed. The failure is distinct from an unavailable provider or missing optional evidence and may be retried. |
 
-Repeated analysis after persisted validation and risk results is idempotent and returns the existing authoritative risk result without creating duplicate risk records or terminal analysis events. A verification already claimed as `PROCESSING` is rejected rather than executed concurrently by the same application boundary.
+Repeated analysis after persisted validation and risk results is idempotent and returns the existing authoritative risk result without creating duplicate risk records or terminal analysis events. Provider/model work runs after the claim commit and before a short persistence transaction. Validation, risk, terminal verification state, and terminal audit events are committed together; a failure rolls back all derived rows and then commits a separate `FAILED` transition and failure audit. A verification already claimed as `PROCESSING` is rejected rather than executed concurrently by the same application boundary.
+
+Each `PROCESSING` claim stores `processing_started_at`. The configured `ANALYSIS_PROCESSING_TIMEOUT_SECONDS` default is 1800 seconds. An explicit recovery operation may conditionally move a still-stale `PROCESSING` row to `FAILED` and records `VERIFICATION_PROCESSING_RECOVERED`. Recovery checks status and timestamp in the same update, and successful completion also checks the original claim timestamp, so recovery cannot overwrite a completed attempt. This is a durable recovery mechanism, not an automatic worker or liveness guarantee.
 
 The API analysis response reports `COMPLETED` for a complete run and `PARTIAL` when OCR, validation, tampering, or face capability is unavailable. Partial output retains normalized evidence and explains what remains unresolved; unavailable modules are not converted into negative findings.
 
@@ -35,7 +37,7 @@ The system preserves the distinction between `NOT_AVAILABLE`, `UNKNOWN`, `NO_MAT
 
 ## Deployment boundary
 
-Local validation uses deterministic fictional fixtures and SQLite where appropriate. The repository does not claim live PostgreSQL migration execution, Render execution, Vercel execution, managed Redis availability, private object-storage availability, production OCR readiness, authorized external verification, liveness/PAD, or production forensic accuracy without deployment-specific evidence.
+Local validation uses deterministic fictional fixtures and SQLite where appropriate. The repository does not claim live PostgreSQL migration execution or concurrency validation, Render execution, Vercel execution, managed Redis availability, private object-storage availability, production OCR readiness, authorized external verification, liveness/PAD, or production forensic accuracy without deployment-specific evidence.
 
 ## Validation record
 

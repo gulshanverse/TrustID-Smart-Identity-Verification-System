@@ -8,11 +8,11 @@ from app.core.config import get_settings
 from app.db.models import User
 from app.db.session import get_db
 from app.domain.auth import Permission
-from app.services.auth_service import AuthService, AuthUser, auth_service
+from app.services.auth_service import AuthService, AuthUser
 
 
-def get_auth_service() -> AuthService:
-    return auth_service
+def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
+    return AuthService(db)
 
 
 def reconcile_persistent_identity(user: AuthUser, db: Session) -> AuthUser:

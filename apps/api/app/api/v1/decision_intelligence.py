@@ -1,8 +1,9 @@
 from datetime import UTC, datetime
-from uuid import NAMESPACE_URL, UUID, uuid5
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.decision_intelligence_schemas import *
@@ -13,10 +14,12 @@ from app.domain.auth import Permission
 from app.domain.decision_intelligence import DecisionIntelligenceResult, DecisionIntelligenceService
 from app.domain.evidence import correlate
 from app.domain.external_verification import ExternalStatus, ExternalVerificationResult
-from app.domain.face import FaceOutcome, FaceQuality, FaceVerificationResult, FaceVerificationStatus
-from app.domain.ocr import OCRResult, OCRStatus
-from app.domain.tampering import TamperingResult, TamperingStatus
-from app.domain.validation import DocumentValidationResult, ValidationStatus
+from app.domain.unavailable import (
+    unavailable_face,
+    unavailable_ocr,
+    unavailable_tampering,
+    unavailable_validation,
+)
 from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.repositories.intelligence_repository import SqlAlchemyIntelligenceRepository
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
@@ -24,10 +27,6 @@ from app.repositories.tampering_repository import SqlAlchemyTamperingRepository
 from app.services.auth_service import AuthUser
 
 router = APIRouter(prefix="/verifications", tags=["decision-intelligence"])
-
-
-def _unavailable_id(verification_id: UUID, name: str) -> UUID:
-    return uuid5(NAMESPACE_URL, f"trustid:unavailable:{verification_id}:{name}")
 
 
 def _build(verification_id: UUID, user: AuthUser, db: Session) -> DecisionIntelligenceResult:
@@ -56,13 +55,13 @@ def _build(verification_id: UUID, user: AuthUser, db: Session) -> DecisionIntell
             detail="Decision intelligence is unavailable because the authorized analysis is incomplete.",
         )
     if ocr is None:
-        ocr = OCRResult(_unavailable_id(verification_id, "ocr"), document.id, OCRStatus.FAILED, "", "", 0.0, "UNAVAILABLE", "none", (), "", "")
+        ocr = unavailable_ocr(verification_id, document.id)
     if validation is None:
-        validation = DocumentValidationResult(_unavailable_id(verification_id, "validation"), document.id, ValidationStatus.UNAVAILABLE, "UNAVAILABLE", "none", "Document validation is unavailable.", (), "", "")
+        validation = unavailable_validation(verification_id, document.id)
     if tampering is None:
-        tampering = TamperingResult(_unavailable_id(verification_id, "tampering"), document.id, TamperingStatus.FAILED, 0.0, 0.0, "UNAVAILABLE", "none", "Tampering analysis is unavailable.", (), "", "")
+        tampering = unavailable_tampering(verification_id, document.id)
     if face is None:
-        face = FaceVerificationResult(_unavailable_id(verification_id, "face"), verification_id, document.id, FaceVerificationStatus.FAILED, FaceOutcome.NOT_AVAILABLE, None, None, "UNAVAILABLE", "none", "Face verification is unavailable.", None, FaceQuality.LOW_QUALITY, FaceQuality.LOW_QUALITY, None, (), "", "")
+        face = unavailable_face(verification_id, document.id)
     external_model = db.scalar(
         select(ExternalVerificationModel)
         .where(ExternalVerificationModel.verification_id == verification_id)
@@ -177,5 +176,8 @@ def generate_decision_intelligence(
                 created_at=datetime.now(UTC),
             )
         )
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
     return _response(result)

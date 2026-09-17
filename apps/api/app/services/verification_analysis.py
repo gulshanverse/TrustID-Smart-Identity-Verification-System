@@ -14,6 +14,7 @@ from app.domain.face import FaceVerificationResult
 from app.domain.ocr import OCRResult
 from app.domain.risk import RiskAssessmentResult, assess_risk
 from app.domain.tampering import TamperingResult
+from app.domain.unavailable import unavailable_face, unavailable_ocr, unavailable_tampering
 from app.domain.validation import (
     DemoDocumentValidationProvider,
     DocumentValidationResult,
@@ -63,15 +64,12 @@ class VerificationAnalysisService:
         ocr = self.ocr.get_latest_for_owner(document.id, self.actor_id)
         tampering = self.tampering.get_latest_for_owner(document.id, self.actor_id)
         face = self.face.get_latest_for_owner(document.id, self.actor_id)
-        if ocr is None or ocr.status.value != "COMPLETED":
-            self._mark_failed(verification, document.id)
-            raise RuntimeError("Verification analysis is unavailable because OCR has not completed.")
+        if ocr is None:
+            ocr = unavailable_ocr(verification_id, document.id)
         if tampering is None:
-            self._mark_failed(verification, document.id)
-            raise RuntimeError("Verification analysis is unavailable because tampering analysis has not completed.")
+            tampering = unavailable_tampering(verification_id, document.id)
         if face is None:
-            self._mark_failed(verification, document.id)
-            raise RuntimeError("Verification analysis is unavailable because face verification has not completed.")
+            face = unavailable_face(verification_id, document.id)
 
         # A retry after a completed run returns the latest persisted result instead of
         # creating a second validation/risk record or inflating analytics totals.

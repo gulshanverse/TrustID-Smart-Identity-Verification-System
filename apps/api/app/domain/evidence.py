@@ -112,7 +112,7 @@ def correlate(verification_id: UUID, ocr: OCRResult, validation: DocumentValidat
     validation_evidence = _item(verification_id, "validation", "DOCUMENT_VALIDATION", "VALIDATION", validation_status, validation_severity, validation.summary, f"DOCUMENT_VALIDATION_{validation_status.value}", _prov("DOCUMENT_VALIDATION", validation.provider, validation.provider_version))
     evidence.append(validation_evidence)
 
-    tampering_status = EvidenceStatus.PASS if tampering.technical_signal_score == 0 else EvidenceStatus.REVIEW
+    tampering_status = EvidenceStatus.NOT_AVAILABLE if tampering.status.value == "NOT_AVAILABLE" else EvidenceStatus.PASS if tampering.technical_signal_score == 0 else EvidenceStatus.REVIEW
     tampering_evidence = _item(verification_id, "tampering", "TAMPERING", "TECHNICAL_SIGNAL", tampering_status, EvidenceSeverity.INFO if tampering_status == EvidenceStatus.PASS else EvidenceSeverity.MEDIUM, tampering.summary, "TAMPERING_CLEAN" if tampering_status == EvidenceStatus.PASS else "TAMPERING_SIGNAL", _prov("TAMPERING", tampering.provider, tampering.provider_version), tampering.overall_confidence, tampering.technical_signal_score)
     evidence.append(tampering_evidence)
     if tampering_status == EvidenceStatus.REVIEW:

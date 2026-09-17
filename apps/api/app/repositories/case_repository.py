@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import (
@@ -133,7 +134,11 @@ class SqlAlchemyCaseRepository:
         now = datetime.now(UTC)
         item = CaseDecisionModel(id=uuid4(), case_id=model.id, decision=value.value, reason=reason, decision_context=decision_context, decided_by=actor_id, created_at=now)
         self.db.add(item)
-        self.db.flush()
+        try:
+            self.db.flush()
+        except IntegrityError as exc:
+            self.db.rollback()
+            raise ValueError("A decision has already been recorded for this case.") from exc
         model.status = CaseStatus.UNDER_REVIEW.value if value == OfficerDecision.REVIEW else CaseStatus.RESOLVED.value
         model.resolution = value.value
         model.resolution_reason = reason

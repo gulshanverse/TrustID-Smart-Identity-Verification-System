@@ -138,3 +138,16 @@ def test_role_permissions_are_explicit(service: AuthService) -> None:
     assert officer is not None
     assert service.has_permission(officer, Permission.VERIFICATION_WORKFLOW)
     assert not service.has_permission(officer, Permission.AUDIT)
+
+
+def test_database_auth_session_survives_service_reconstruction(db: Session) -> None:
+    first = AuthService(db)
+    user = first.add_user("durable@trustid.local", "Durable Officer", "correct horse battery", {Role.OFFICER})
+    assert first.authenticate(user.email, "correct horse battery") is not None
+    token = first.create_session(user)
+
+    second = AuthService(db)
+    restored = second.get_user_by_session(token)
+    assert restored is not None
+    assert restored.id == user.id
+    assert restored.email == user.email

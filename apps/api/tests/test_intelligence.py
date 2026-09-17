@@ -144,9 +144,13 @@ def test_repeated_analysis_is_idempotent_and_marks_lifecycle_complete(db: Sessio
     assert db.scalars(select(RiskAssessmentModel).where(RiskAssessmentModel.verification_id == verification.id)).all().__len__() == 1
 
 
-def test_orchestration_does_not_fabricate_missing_modules(db: Session) -> None:
+def test_orchestration_marks_missing_modules_unavailable(db: Session) -> None:
     actor = uuid4()
     documents = DocumentService(InMemoryObjectStorage(), SqlAlchemyDocumentRepository(db))
     verification = documents.create_verification(actor, f"phase9-missing-{actor}@example.test", "Officer")
-    with pytest.raises(LookupError):
-        VerificationAnalysisService(db, actor).analyze(verification.id)
+    documents.upload(verification.id, actor, "missing.pdf", "application/pdf", b"%PDF-1.7\npartial-evidence", DocumentType.PASSPORT)
+    result = VerificationAnalysisService(db, actor).analyze(verification.id)
+    assert result.ocr.provider == "UNAVAILABLE"
+    assert result.tampering.status.value == "NOT_AVAILABLE"
+    assert result.face.outcome.value == "NOT_AVAILABLE"
+    assert any(item.status.value == "NOT_AVAILABLE" for item in result.correlation.evidence)

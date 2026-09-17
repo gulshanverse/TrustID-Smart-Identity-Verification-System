@@ -21,6 +21,12 @@ from app.db.session import get_db
 from app.domain.auth import Permission
 from app.domain.evidence import correlate
 from app.domain.risk import RiskAssessmentResult
+from app.domain.unavailable import (
+    unavailable_face,
+    unavailable_ocr,
+    unavailable_tampering,
+    unavailable_validation,
+)
 from app.domain.validation import DocumentValidationResult
 from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.repositories.intelligence_repository import SqlAlchemyIntelligenceRepository
@@ -58,8 +64,16 @@ def latest_result(verification_id: UUID, user: AuthUser, db: Session) -> Verific
     ocr = None if document is None else SqlAlchemyOCRRepository(db).get_latest_for_owner(document.id, user.id)
     tampering = None if document is None else SqlAlchemyTamperingRepository(db).get_latest_for_owner(document.id, user.id)
     face = None if document is None else SqlAlchemyFaceRepository(db).get_latest_for_owner(document.id, user.id)
-    if document is None or risk is None or validation is None or ocr is None or tampering is None or face is None:
+    if document is None or risk is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Verification analysis result not found or is incomplete.")
+    if validation is None:
+        validation = unavailable_validation(verification_id, document.id)
+    if ocr is None:
+        ocr = unavailable_ocr(verification_id, document.id)
+    if tampering is None:
+        tampering = unavailable_tampering(verification_id, document.id)
+    if face is None:
+        face = unavailable_face(verification_id, document.id)
     return analysis_response(VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk, correlate(verification_id, ocr, validation, tampering, face, risk)))
 
 

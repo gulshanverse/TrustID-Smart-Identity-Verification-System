@@ -13,6 +13,7 @@ class TamperingStatus(StrEnum):
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+    NOT_AVAILABLE = "NOT_AVAILABLE"
 
 
 class TamperingScenario(StrEnum):

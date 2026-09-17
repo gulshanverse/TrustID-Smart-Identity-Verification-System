@@ -3,7 +3,18 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, Table
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Table,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -36,6 +47,15 @@ class RoleModel(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     users: Mapped[list[User]] = relationship(secondary=user_roles, back_populates="roles")
+
+
+class AuthSessionModel(Base):
+    __tablename__ = "auth_sessions"
+
+    token: Mapped[str] = mapped_column(String(128), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
 
 class VerificationModel(Base):
@@ -345,6 +365,8 @@ class CaseDecisionModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     case: Mapped[CaseModel] = relationship(back_populates="decisions")
 
+    __table_args__ = (Index("uq_case_decisions_case_id", "case_id", unique=True),)
+
 
 class ReportModel(Base):
     __tablename__ = "reports"
@@ -375,3 +397,14 @@ class AuditEventModel(Base):
     provider: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        Index(
+            "uq_decision_intelligence_audit",
+            "verification_id",
+            "actor_id",
+            unique=True,
+            sqlite_where=text("event_type = 'DECISION_INTELLIGENCE_COMPLETED'"),
+            postgresql_where=text("event_type = 'DECISION_INTELLIGENCE_COMPLETED'"),
+        ),
+    )

@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from uuid import UUID
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -10,9 +10,13 @@ from app.api.dependencies import require_permission
 from app.db.models import AuditEventModel, ExternalVerificationModel
 from app.db.session import get_db
 from app.domain.auth import Permission
-from app.domain.decision_intelligence import DecisionIntelligenceService
+from app.domain.decision_intelligence import DecisionIntelligenceResult, DecisionIntelligenceService
 from app.domain.evidence import correlate
 from app.domain.external_verification import ExternalStatus, ExternalVerificationResult
+from app.domain.face import FaceOutcome, FaceQuality, FaceVerificationResult, FaceVerificationStatus
+from app.domain.ocr import OCRResult, OCRStatus
+from app.domain.tampering import TamperingResult, TamperingStatus
+from app.domain.validation import DocumentValidationResult, ValidationStatus
 from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.repositories.intelligence_repository import SqlAlchemyIntelligenceRepository
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
@@ -22,7 +26,11 @@ from app.services.auth_service import AuthUser
 router = APIRouter(prefix="/verifications", tags=["decision-intelligence"])
 
 
-def _build(verification_id: UUID, user: AuthUser, db: Session):
+def _unavailable_id(verification_id: UUID, name: str) -> UUID:
+    return uuid5(NAMESPACE_URL, f"trustid:unavailable:{verification_id}:{name}")
+
+
+def _build(verification_id: UUID, user: AuthUser, db: Session) -> DecisionIntelligenceResult:
     intelligence = SqlAlchemyIntelligenceRepository(db)
     document = intelligence.get_document_for_verification_owner(verification_id, user.id)
     risk = intelligence.latest_risk(verification_id, user.id)
@@ -42,18 +50,19 @@ def _build(verification_id: UUID, user: AuthUser, db: Session):
         if document is None
         else SqlAlchemyFaceRepository(db).get_latest_for_owner(document.id, user.id)
     )
-    if (
-        document is None
-        or risk is None
-        or validation is None
-        or ocr is None
-        or tampering is None
-        or face is None
-    ):
+    if document is None or risk is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Decision intelligence is unavailable because the authorized analysis is incomplete.",
         )
+    if ocr is None:
+        ocr = OCRResult(_unavailable_id(verification_id, "ocr"), document.id, OCRStatus.FAILED, "", "", 0.0, "UNAVAILABLE", "none", (), "", "")
+    if validation is None:
+        validation = DocumentValidationResult(_unavailable_id(verification_id, "validation"), document.id, ValidationStatus.UNAVAILABLE, "UNAVAILABLE", "none", "Document validation is unavailable.", (), "", "")
+    if tampering is None:
+        tampering = TamperingResult(_unavailable_id(verification_id, "tampering"), document.id, TamperingStatus.FAILED, 0.0, 0.0, "UNAVAILABLE", "none", "Tampering analysis is unavailable.", (), "", "")
+    if face is None:
+        face = FaceVerificationResult(_unavailable_id(verification_id, "face"), verification_id, document.id, FaceVerificationStatus.FAILED, FaceOutcome.NOT_AVAILABLE, None, None, "UNAVAILABLE", "none", "Face verification is unavailable.", None, FaceQuality.LOW_QUALITY, FaceQuality.LOW_QUALITY, None, (), "", "")
     external_model = db.scalar(
         select(ExternalVerificationModel)
         .where(ExternalVerificationModel.verification_id == verification_id)
@@ -78,12 +87,13 @@ def _build(verification_id: UUID, user: AuthUser, db: Session):
     )
 
 
-def _response(result) -> DecisionIntelligenceResponse:
+def _response(result: DecisionIntelligenceResult) -> DecisionIntelligenceResponse:
     return DecisionIntelligenceResponse(
         verification_id=result.verification_id,
         status=result.status,
         version=result.version,
         generated_at=result.generated_at,
+        analysis_fingerprint=result.analysis_fingerprint,
         evidence_summary=[
             DecisionEvidenceResponse(
                 evidence_id=i.evidence_id,

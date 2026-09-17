@@ -177,3 +177,45 @@ def test_no_match_is_high_priority_but_not_fraud():
         for item in result.review_priorities
     )
     assert all(item.contribution == 0 for item in result.risk_context.factors)
+
+
+def _decision_inputs():
+    verification_id = uuid4()
+    document_id = uuid4()
+    timestamp = "2026-01-01T00:00:00+00:00"
+    ocr = OCRResult(uuid4(), document_id, OCRStatus.COMPLETED, "", "en", 0.9, "ocr", "1", (), timestamp, timestamp)
+    validation = DocumentValidationResult(uuid4(), document_id, ValidationStatus.FAILED, "rules", "phase5-rules-v1", "validation failed", (), timestamp, timestamp)
+    tampering = TamperingResult(uuid4(), document_id, TamperingStatus.COMPLETED, 0.5, 0.9, "tampering", "1", "signal", (), timestamp, timestamp)
+    face = FaceVerificationResult(uuid4(), verification_id, document_id, FaceVerificationStatus.COMPLETED, FaceOutcome.NO_MATCH, 0.2, 0.2, "face", "1", "no match", None, FaceQuality.READY, FaceQuality.READY, 1, (), timestamp, timestamp)
+    risk = RiskAssessmentResult(uuid4(), verification_id, RiskAssessmentStatus.COMPLETED, 55, RiskLevel.REVIEW, "review", None, "summary", "risk-v1", (), timestamp, timestamp)
+    correlation = __import__("app.domain.evidence", fromlist=["correlate"]).correlate(verification_id, ocr, validation, tampering, face, risk)
+    return verification_id, ocr, validation, tampering, face, risk, correlation
+
+
+def test_same_source_state_has_same_fingerprint_but_generated_at_is_metadata():
+    inputs = _decision_inputs()
+    first = DecisionIntelligenceService().build(*inputs)
+    second = DecisionIntelligenceService().build(*inputs)
+    assert first.analysis_fingerprint == second.analysis_fingerprint
+    assert first.generated_at != second.generated_at
+
+
+def test_signals_are_not_contradictions_and_priorities_link_source_evidence():
+    result = DecisionIntelligenceService().build(*_decision_inputs())
+    contradiction_codes = {item.code for item in result.contradictions}
+    assert "FACE_NO_MATCH" not in contradiction_codes
+    assert "TAMPERING_SIGNAL" not in contradiction_codes
+    priorities = {item.code: item for item in result.review_priorities}
+    assert priorities["FACE_NO_MATCH"].evidence_ids
+    assert priorities["FORENSIC_SIGNAL"].evidence_ids
+    assert priorities["DOCUMENT_VALIDATION_FAILED"].evidence_ids
+    assert all("proof of fraud" not in item.explanation.lower() for item in result.review_priorities)
+
+
+def test_snapshot_excludes_generated_at_and_contains_safe_context():
+    result = DecisionIntelligenceService().build(*_decision_inputs())
+    snapshot = result.snapshot()
+    assert snapshot["analysis_fingerprint"] == result.analysis_fingerprint
+    assert "generated_at" not in snapshot
+    assert "raw_payload" not in str(snapshot).lower()
+    assert "embedding" not in str(snapshot).lower()

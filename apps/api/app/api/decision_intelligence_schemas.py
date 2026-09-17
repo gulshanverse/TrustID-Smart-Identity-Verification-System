@@ -48,6 +48,7 @@ class DecisionIntelligenceResponse(BaseModel):
     status: str
     version: str
     generated_at: str
+    analysis_fingerprint: str
     evidence_summary: list[DecisionEvidenceResponse]
     contradictions: list[ContradictionResponse]
     review_priorities: list[ReviewPriorityResponse]

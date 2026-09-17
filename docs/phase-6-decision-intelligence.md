@@ -6,7 +6,7 @@
 
 ## Data flow and decision context
 
-The service in `apps/api/app/domain/decision_intelligence.py` deterministically transforms normalized evidence into an evidence summary, contradictions, review priorities, missing-information entries, risk context, and provenance. It references evidence IDs and provider/rule versions instead of copying raw OCR, biometric, credential, or provider payloads. Items are ordered deterministically by category/source/ID; contradictions and priorities use stable codes and ordering.
+The service in `apps/api/app/domain/decision_intelligence.py` transforms normalized evidence into an evidence summary, contradictions, review priorities, missing-information entries, risk context, and provenance. The deterministic content is identified by `analysis_fingerprint`, a SHA-256 fingerprint over normalized evidence, findings, priorities, missing-information codes, risk context, correlation summary, and provider/rule versions. `generated_at` remains execution metadata and is excluded from the fingerprint, so identical source state and versions produce identical content fingerprints.
 
 The risk context is copied from the persisted authoritative risk assessment. Phase 6 never recalculates the score, changes risk contributions, or creates a second risk engine. Risk factors retain their persisted contribution, source reference, explanation, and assessment version.
 
@@ -16,9 +16,13 @@ Evidence is grouped into `DOCUMENT`, `IDENTITY`, `FORENSICS`, `EXTERNAL`, and `C
 
 ## Contradictions and priorities
 
-The service surfaces existing Phase 3 mismatches, external `NO_MATCH`, face `NO_MATCH`, tampering signals, validation/face conflicts, and external `UNKNOWN` with local evidence. Explanations use officer-review language such as “Evidence conflict requiring officer review.” Priorities are `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` workflow guidance only. No new numeric risk weights are introduced.
+The service surfaces existing Phase 3 mismatches and external-record conflicts as contradictions. Face `NO_MATCH`, tampering signals, and document validation failures are signals or attention items; they are not automatically contradictions and never constitute proof of fraud. Priorities are `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` workflow guidance only. Where a priority comes from normalized evidence, its `evidence_ids` reference the actual evidence item; IDs are never invented. No new numeric risk weights are introduced.
 
-Missing information explicitly includes liveness/PAD as `NOT_AVAILABLE` under the existing provider semantics and external verification as `NOT_AVAILABLE` when no persisted result exists. Optional external results are persisted in `external_verifications` by migration `012_external_verification_results`; repeated provider calls reuse the latest result and do not trigger duplicate provider work.
+Missing information explicitly includes liveness/PAD and any OCR, validation, tampering, face, or external module whose persisted state is `NOT_AVAILABLE`. Decision Intelligence operates over all available persisted structured evidence and does not convert unavailable states into failure. Optional external results are persisted in `external_verifications` by migration `012_external_verification_results`; repeated provider calls reuse the latest result and do not trigger duplicate provider work.
+
+## Historical officer decision snapshot
+
+When an officer records `APPROVE`, `REVIEW`, or `REJECT`, migration `013_decision_context_snapshot` stores a safe structured `decision_context` on the immutable `case_decisions` row. The snapshot contains the Phase 6 version and fingerprint, risk score/band/version and factors, evidence IDs, correlation and priority codes, missing-information codes/statuses, and provenance. It excludes `generated_at`, raw provider payloads, biometric embeddings, face or document images, unnecessary PII, and provider secrets. Regenerating current analysis therefore cannot change the historical context used by an officer decision.
 
 ## API and UI
 
@@ -39,7 +43,7 @@ Access is authenticated, permission-checked, and owner-scoped. IDs cannot be use
 
 ## Validation
 
-The repository backend suite passes **90 tests with 2 existing skips** after adding two Phase 6 domain tests. Ruff, Python compilation, frontend tests, frontend typecheck, production build, and Alembic head validation are run as part of final verification. Local test results do not establish production latency, biometric accuracy, forensic accuracy, demographic fairness, or legal authority.
+The repository backend suite passes **94 tests with 2 existing skips**, including focused fingerprint, evidence-link, signal-semantics, partial-evidence, and officer-snapshot tests. Ruff, MyPy, Python compilation, frontend tests, frontend typecheck, production build, and migration-chain validation are run as part of final verification. Local test results do not establish production latency, biometric accuracy, forensic accuracy, demographic fairness, or legal authority.
 
 ## Carry-forward blockers
 
@@ -47,7 +51,7 @@ The repository backend suite passes **90 tests with 2 existing skips** after add
 |---|---|---|---|---|---|
 | 1 | Render OCR deployment, Tesseract/Poppler production availability, operational OCR testing | DEPLOYMENT | No | Repository tests only | Render/infrastructure execution |
 | 2 | Render face validation, liveness/PAD, cross-dataset, demographic, threshold calibration, real capture, SFace legal/provenance review | EXTERNAL SERVICE / DATASET / HARDWARE / LEGAL/GOVERNANCE | No | Existing local tests and documented provider seams | Authorized models, datasets, hardware, deployment, governance |
-| 3 | Evidence correlation and risk authority | REPOSITORY | Yes | Existing correlation and risk tests remain green | Immutable decision snapshot expansion remains outside current case schema |
+| 3 | Evidence correlation and risk authority | REPOSITORY | Yes | Existing correlation, fingerprint, and snapshot tests | No remaining Phase 6 repository blocker; production validation remains outside this repository |
 | 4 | Production forensic resources, operational testing, threshold validation | DEPLOYMENT / DATASET | No | Existing tampering tests | Production environment and benchmark ground truth |
 | 5 | Authorized government/external database, production provider, external security validation | EXTERNAL SERVICE / LEGAL/GOVERNANCE | No | Production adapter truthfully returns `NOT_AVAILABLE`; simulated provider is labeled | Authorized provider, credentials, allowlist, security review |
 

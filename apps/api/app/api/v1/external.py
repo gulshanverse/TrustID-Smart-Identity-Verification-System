@@ -12,7 +12,9 @@ from app.db.models import ExternalVerificationModel
 from app.db.session import get_db
 from app.domain.auth import Permission
 from app.domain.external_verification import (
+    ExternalVerificationProvider,
     ExternalVerificationQuery,
+    ExternalVerificationResult,
     MockExternalVerificationProvider,
     ProductionExternalVerificationProvider,
 )
@@ -22,14 +24,14 @@ from app.services.auth_service import AuthUser
 router = APIRouter(prefix="/verifications", tags=["external-verification"])
 
 
-def _provider():
+def _provider() -> ExternalVerificationProvider:
     settings = get_settings()
     if settings.external_verification_provider.lower() == "demo":
         return MockExternalVerificationProvider()
     return ProductionExternalVerificationProvider(configured=False)
 
 
-def _response(verification_id: UUID, result) -> ExternalVerificationResponse:
+def _response(verification_id: UUID, result: ExternalVerificationResult) -> ExternalVerificationResponse:
     return ExternalVerificationResponse(
         verification_id=verification_id,
         status=result.status.value,

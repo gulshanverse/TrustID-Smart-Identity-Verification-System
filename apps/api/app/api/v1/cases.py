@@ -21,10 +21,12 @@ from app.api.case_schemas import (
     TimelineResponse,
 )
 from app.api.dependencies import get_current_user
+from app.api.v1.decision_intelligence import _build as build_decision_intelligence
 from app.db.models import CaseModel
 from app.db.session import get_db
 from app.domain.auth import Permission, Role, permissions_for_roles
 from app.domain.cases import CaseRecord, require_decision_reason
+from app.domain.decision_intelligence import decision_snapshot
 from app.domain.documents import safe_exception_message
 from app.repositories.case_repository import SqlAlchemyCaseRepository
 from app.services.auth_service import AuthUser
@@ -101,7 +103,8 @@ def record_decision(case_id: UUID, payload: DecisionRequest, request: Request, u
     ensure(user, Permission.CASE_DECIDE); repo = SqlAlchemyCaseRepository(db); model = get_case(case_id, user, db)
     try:
         reason = require_decision_reason(payload.decision, payload.reason)
-        item = repo.decision(model, user.id, payload.decision, reason)
+        context = decision_snapshot(build_decision_intelligence(model.verification_id, user, db))
+        item = repo.decision(model, user.id, payload.decision, reason, context)
         return {"id": item.id, "decision": item.decision, "created_at": item.created_at, "case_status": model.status, "reason": item.reason}
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc

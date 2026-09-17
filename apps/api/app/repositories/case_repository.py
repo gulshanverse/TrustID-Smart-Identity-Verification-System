@@ -125,13 +125,13 @@ class SqlAlchemyCaseRepository:
         if entity is None or self.db.get(entity, source_id) is None: raise ValueError("Evidence source does not exist.")
         item = CaseEvidenceModel(id=uuid4(), case_id=model.id, evidence_type=evidence_type, source_type=source_type, source_id=source_id, title=title.strip(), summary=summary.strip(), severity=severity, created_by=actor_id, created_at=datetime.now(UTC)); self.db.add(item); self.db.add(AuditEventModel(event_type="CASE_EVIDENCE_ADDED", actor_id=actor_id, verification_id=model.verification_id, case_id=model.id, status="ADDED", created_at=datetime.now(UTC))); self.db.commit(); return item
 
-    def decision(self, model: CaseModel, actor_id: UUID, value: OfficerDecision, reason: str) -> CaseDecisionModel:
+    def decision(self, model: CaseModel, actor_id: UUID, value: OfficerDecision, reason: str, decision_context: dict[str, object] | None = None) -> CaseDecisionModel:
         if model.status == CaseStatus.CLOSED.value:
             raise ValueError("Closed cases cannot receive decisions.")
         if self.db.scalar(select(CaseDecisionModel).where(CaseDecisionModel.case_id == model.id)) is not None:
             raise ValueError("A decision has already been recorded for this case.")
         now = datetime.now(UTC)
-        item = CaseDecisionModel(id=uuid4(), case_id=model.id, decision=value.value, reason=reason, decided_by=actor_id, created_at=now)
+        item = CaseDecisionModel(id=uuid4(), case_id=model.id, decision=value.value, reason=reason, decision_context=decision_context, decided_by=actor_id, created_at=now)
         self.db.add(item)
         self.db.flush()
         model.status = CaseStatus.UNDER_REVIEW.value if value == OfficerDecision.REVIEW else CaseStatus.RESOLVED.value

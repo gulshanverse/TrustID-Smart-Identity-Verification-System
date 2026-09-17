@@ -110,3 +110,27 @@ def test_case_owner_and_assignment_visibility_are_scoped(db: Session) -> None:
 def test_evidence_requires_existing_reference(db: Session) -> None:
     repo, actor, _, _case, model = create_case(db)
     with pytest.raises(ValueError): repo.add_evidence(model, actor, "RISK_FACTOR", "risk_factor", uuid4(), "Missing source", "Reference does not exist.", "REVIEW")
+
+
+def test_officer_decision_snapshot_is_immutable_after_analysis_regeneration(db: Session) -> None:
+    repo, actor, _verification, _case, model = create_case(db)
+    snapshot = {
+        "decision_intelligence_version": "phase6-decision-intelligence-v1",
+        "analysis_fingerprint": "fingerprint-at-decision-time",
+        "risk": {"score": 42, "band": "REVIEW", "assessment_version": "risk-v1", "factors": []},
+        "evidence_ids": [str(uuid4())],
+        "correlation": [],
+        "review_priorities": [{"code": "FACE_NO_MATCH", "priority": "HIGH", "evidence_ids": []}],
+        "missing_information": [{"code": "LIVENESS_NOT_IMPLEMENTED", "status": "NOT_AVAILABLE"}],
+        "provenance": ["Phase 3 evidence correlation"],
+    }
+    decision = repo.decision(model, actor, OfficerDecision.REVIEW, "The stored analysis requires additional review.", snapshot)
+    persisted = db.get(CaseDecisionModel, decision.id)
+    assert persisted is not None
+    original = dict(persisted.decision_context or {})
+    persisted.decision_context = {**original, "analysis_fingerprint": "regenerated-current-analysis"}
+    db.flush()
+    db.rollback()
+    reloaded = db.get(CaseDecisionModel, decision.id)
+    assert reloaded is not None
+    assert reloaded.decision_context == original

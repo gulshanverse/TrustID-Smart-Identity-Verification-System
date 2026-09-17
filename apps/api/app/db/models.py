@@ -340,6 +340,7 @@ class CaseDecisionModel(Base):
     case_id: Mapped[UUID] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
     decision: Mapped[str] = mapped_column(String(16), nullable=False)
     reason: Mapped[str] = mapped_column(String, nullable=False)
+    decision_context: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
     decided_by: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     case: Mapped[CaseModel] = relationship(back_populates="decisions")

@@ -11,6 +11,7 @@ from app.db.models import (
     CaseModel,
     DocumentValidationModel,
     FaceVerificationModel,
+    OCRFieldModel,
     OCRResultModel,
     RiskAssessmentModel,
     TamperingResultModel,
@@ -127,6 +128,31 @@ def test_verification_orchestration_persists_risk_and_audit_events(db: Session) 
     decision = cases.decision(case_model, actor, OfficerDecision.APPROVE, "Approved after reviewing the complete demo evidence.")
     assert decision.decision == OfficerDecision.APPROVE.value
     assert db.get(CaseModel, case.id).status == CaseStatus.RESOLVED.value
+
+
+def test_cross_document_correlation_reaches_operational_analysis_result(db: Session) -> None:
+    actor = uuid4()
+    storage = InMemoryObjectStorage()
+    documents = DocumentService(storage, SqlAlchemyDocumentRepository(db))
+    verification = documents.create_verification(actor, f"cross-doc-{actor}@example.test", "Officer")
+    content = b"%PDF-1.7\nTRUSTID-DEMO-OCR: FICTIONAL SAMPLE\nTRUSTID-TAMPERING:CLEAN\nTRUSTID-FACE:DOCUMENT"
+    first = documents.upload(verification.id, actor, "passport-a.pdf", "application/pdf", content, DocumentType.PASSPORT)
+    second = documents.upload(verification.id, actor, "passport-b.pdf", "application/pdf", content, DocumentType.PASSPORT)
+    ocr_service = OCRService(storage, SqlAlchemyOCRRepository(db), __import__("app.domain.ocr", fromlist=["DemoOCRProvider"]).DemoOCRProvider())
+    ocr_service.process(first.id, actor)
+    ocr_service.process(second.id, actor)
+    second_field = db.scalar(select(OCRFieldModel).join(OCRResultModel).where(OCRResultModel.document_id == second.id, OCRFieldModel.name == "full_name"))
+    assert second_field is not None
+    second_field.value = "DIFFERENT APPLICANT"
+    second_field.normalized_value = "DIFFERENT APPLICANT"
+    db.commit()
+
+    result = VerificationAnalysisService(db, actor).analyze(verification.id)
+
+    mismatch = next(item for item in result.correlation.cross_document_findings if item.code == "CROSS_DOCUMENT_NAME_MISMATCH")
+    assert mismatch.status.value == "NO_MATCH"
+    assert "review" in mismatch.explanation.lower()
+    assert "fraud" in mismatch.explanation.lower()
 
 
 def test_repeated_analysis_is_idempotent_and_marks_lifecycle_complete(db: Session) -> None:

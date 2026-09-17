@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.models import AuditEventModel, VerificationModel
+from app.domain.advanced_document_intelligence import CrossDocumentFinding, correlate_documents
 from app.domain.documents import DocumentLifecycle, DocumentRecord, DocumentType
 from app.domain.evidence import CorrelationResult, correlate
 from app.domain.face import FaceVerificationResult
@@ -56,6 +57,18 @@ class VerificationAnalysisService:
         self.tampering = SqlAlchemyTamperingRepository(db)
         self.face = SqlAlchemyFaceRepository(db)
         self.validation_provider = DemoDocumentValidationProvider()
+
+    def _cross_document_findings(self, verification_id: UUID) -> tuple[CrossDocumentFinding, ...]:
+        documents = self.intelligence.get_documents_for_verification_owner(verification_id, self.actor_id)
+        comparable_documents: list[tuple[str, dict[str, str | None]]] = []
+        for document in documents:
+            ocr = self.ocr.get_latest_for_owner(document.id, self.actor_id)
+            if ocr is None or not ocr.fields:
+                continue
+            fields: dict[str, str | None] = {field.name: field.normalized_value for field in ocr.fields}
+            label = f"{document.document_type}:{document.id}"
+            comparable_documents.append((label, fields))
+        return correlate_documents(comparable_documents) if len(comparable_documents) > 1 else ()
 
     def recover_stale_processing(self, verification_id: UUID) -> None:
         """Move one stale PROCESSING attempt to FAILED, if it is still stale.
@@ -146,6 +159,7 @@ class VerificationAnalysisService:
         existing_validation = self.intelligence.latest_validation(document.id)
         existing_risk = self.intelligence.latest_risk(verification_id, self.actor_id)
         if existing_validation is not None and existing_risk is not None:
+            cross_document_findings = self._cross_document_findings(verification_id)
             logger.info(
                 "verification_analysis_idempotent verification_id=%s outcome=COMPLETED duration_ms=%.2f",
                 verification_id,
@@ -159,7 +173,7 @@ class VerificationAnalysisService:
                 tampering,
                 face,
                 existing_risk,
-                correlate(verification_id, ocr, existing_validation, tampering, face, existing_risk),
+                correlate(verification_id, ocr, existing_validation, tampering, face, existing_risk, cross_document_findings=cross_document_findings),
             )
 
         claim_started_at = datetime.now(UTC)
@@ -227,7 +241,8 @@ class VerificationAnalysisService:
             )
             self.intelligence.add_validation(validation, self.actor_id)
             risk = assess_risk(verification_id, validation, tampering, face, ocr.overall_confidence)
-            correlation = correlate(verification_id, ocr, validation, tampering, face, risk)
+            cross_document_findings = self._cross_document_findings(verification_id)
+            correlation = correlate(verification_id, ocr, validation, tampering, face, risk, cross_document_findings=cross_document_findings)
 
             # One coherent persistence transaction: no derived row is committed
             # until validation, risk, correlation, terminal state, and audit rows

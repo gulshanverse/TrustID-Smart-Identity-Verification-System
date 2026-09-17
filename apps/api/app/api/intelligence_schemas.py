@@ -91,6 +91,17 @@ class VerificationFindingResponse(BaseModel):
     created_at: str
 
 
+class CrossDocumentFindingResponse(BaseModel):
+    code: str
+    left_document: str
+    right_document: str
+    field: str
+    status: str
+    severity: str
+    explanation: str
+    provenance: str
+
+
 class VerificationAnalysisResponse(BaseModel):
     verification_id: UUID
     document_id: UUID
@@ -101,3 +112,4 @@ class VerificationAnalysisResponse(BaseModel):
     correlation_summary: str
     evidence: list[EvidenceResponse]
     findings: list[VerificationFindingResponse]
+    cross_document_findings: list[CrossDocumentFindingResponse]

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_permission
 from app.api.intelligence_schemas import (
+    CrossDocumentFindingResponse,
     EvidenceProvenanceResponse,
     EvidenceResponse,
     ModuleStatusResponse,
@@ -53,8 +54,9 @@ def analysis_response(result: VerificationAnalysisResult) -> VerificationAnalysi
     modules = [ModuleStatusResponse(name="OCR", status=result.ocr.status.value, summary="Structured text extraction completed."), ModuleStatusResponse(name="Document validation", status=result.validation.status.value, summary=result.validation.summary), ModuleStatusResponse(name="Tampering", status=result.tampering.status.value, summary=result.tampering.summary), ModuleStatusResponse(name="Face verification", status=result.face.outcome.value, summary=result.face.summary), ModuleStatusResponse(name="Risk assessment", status=result.risk.risk_level.value, summary=result.risk.recommendation)]
     evidence = [EvidenceResponse(evidence_id=item.evidence_id, source_module=item.source_module, evidence_type=item.evidence_type, status=item.status.value, severity=item.severity.value, confidence=item.confidence, score=item.score, explanation=item.explanation, reason_code=item.reason_code, provenance=EvidenceProvenanceResponse(module=item.provenance.module, provider=item.provenance.provider, version=item.provenance.version, rule=item.provenance.rule), created_at=item.created_at) for item in result.correlation.evidence]
     findings = [VerificationFindingResponse(finding_id=item.finding_id, code=item.code, status=item.status.value, severity=item.severity.value, title=item.title, explanation=item.explanation, evidence_ids=list(item.evidence_ids), provenance=EvidenceProvenanceResponse(module=item.provenance.module, provider=item.provenance.provider, version=item.provenance.version, rule=item.provenance.rule), risk_contribution=item.risk_contribution, created_at=item.created_at) for item in result.correlation.findings]
+    cross_document_findings = [CrossDocumentFindingResponse(code=item.code, left_document=item.left_document, right_document=item.right_document, field=item.field, status=item.status.value, severity=item.severity.value, explanation=item.explanation, provenance=item.provenance) for item in result.correlation.cross_document_findings]
     partial = result.ocr.status.value != "COMPLETED" or result.tampering.status.value != "COMPLETED" or result.face.outcome.value == "NOT_AVAILABLE" or result.validation.status.value == "UNAVAILABLE"
-    return VerificationAnalysisResponse(verification_id=result.verification_id, document_id=result.document_id, status="PARTIAL" if partial else "COMPLETED", modules=modules, validation=validation_response(result.validation), risk=risk_response(result.risk), correlation_summary=result.correlation.summary, evidence=evidence, findings=findings)
+    return VerificationAnalysisResponse(verification_id=result.verification_id, document_id=result.document_id, status="PARTIAL" if partial else "COMPLETED", modules=modules, validation=validation_response(result.validation), risk=risk_response(result.risk), correlation_summary=result.correlation.summary, evidence=evidence, findings=findings, cross_document_findings=cross_document_findings)
 
 
 def latest_result(verification_id: UUID, user: AuthUser, db: Session) -> VerificationAnalysisResponse:

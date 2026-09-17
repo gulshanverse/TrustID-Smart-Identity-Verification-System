@@ -142,6 +142,9 @@ class DecisionIntelligenceService:
         for finding in correlation.findings:
             if finding.code in {"MRZ_OCR_PASSPORT_NUMBER_MISMATCH", "MRZ_OCR_DATE_OF_BIRTH_MISMATCH", "MRZ_OCR_EXPIRY_DATE_MISMATCH", "EXTERNAL_RECORD_MISMATCH"}:
                 contradictions.append(Contradiction(finding.code, finding.severity.value, finding.evidence_ids, "Evidence conflict requiring officer review. " + finding.explanation, f"{finding.provenance.module}:{finding.provenance.version}"))
+        for cross_finding in correlation.cross_document_findings:
+            if cross_finding.status.value == "NO_MATCH":
+                contradictions.append(Contradiction(cross_finding.code, cross_finding.severity.value, (), "Cross-document conflict requiring officer review. " + cross_finding.explanation, cross_finding.provenance))
         if validation.status == ValidationStatus.FAILED and face.outcome == FaceOutcome.MATCH:
             contradictions.append(Contradiction("VALID_FACE_DOCUMENT_VALIDATION_FAILURE", "HIGH", (), "Document validation failed while face verification returned MATCH. Evidence conflict requiring officer review.", "Phase 3 correlation and authoritative risk assessment"))
         if external is not None and external.status == ExternalStatus.UNKNOWN:

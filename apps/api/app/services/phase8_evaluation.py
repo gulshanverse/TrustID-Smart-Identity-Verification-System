@@ -23,7 +23,8 @@ class FieldMetric:
 
 def field_metrics(rows: Iterable[Mapping[str, Any]], field: str) -> FieldMetric:
     values = list(rows)
-    comparable = [row for row in values if row.get("expected") is not None and row.get("actual") is not None]
+    field_rows = [row for row in values if row.get("field") == field]
+    comparable = [row for row in field_rows if row.get("expected") is not None and row.get("actual") is not None]
     matches = sum(str(row["expected"]).strip().upper() == str(row["actual"]).strip().upper() for row in comparable)
     return FieldMetric(field, len(comparable), matches, None if not comparable else matches / len(comparable))
 
@@ -32,8 +33,9 @@ def reproducible_report(dataset_id: str, rows: Iterable[Mapping[str, Any]], *, m
     materialized = [dict(row) for row in rows]
     encoded = json.dumps(materialized, sort_keys=True, separators=(",", ":")).encode()
     metrics = [field_metrics(materialized, field) for field in sorted({str(row.get("field", "unknown")) for row in materialized})]
+    fully_labeled = bool(materialized) and all(row.get("expected") is not None and row.get("actual") is not None for row in materialized)
     return {
-        "status": "MEASURED" if materialized else "DATASET_VALIDATION_PENDING",
+        "status": "MEASURED" if fully_labeled else "DATASET_VALIDATION_PENDING",
         "dataset_id": dataset_id,
         "sample_count": len(materialized),
         "field_metrics": [metric.__dict__ for metric in metrics],

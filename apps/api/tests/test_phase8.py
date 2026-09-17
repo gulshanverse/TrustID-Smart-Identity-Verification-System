@@ -38,8 +38,10 @@ def test_capability_boundaries_are_explicit() -> None:
 
 
 def test_evaluation_is_reproducible_and_handles_empty_data() -> None:
-    assert field_metrics([{"expected": "A", "actual": "a"}], "name").accuracy == 1.0
+    assert field_metrics([{"field": "name", "expected": "A", "actual": "a"}, {"field": "dob", "expected": "1", "actual": "2"}], "name").accuracy == 1.0
     report = reproducible_report("fixture-v1", [{"field": "name", "expected": "A", "actual": "a"}])
     assert report["status"] == "MEASURED"
     assert report["sample_count"] == 1
+    assert reproducible_report("unlabeled", [{"field": "name", "actual": "a"}])["status"] == "DATASET_VALIDATION_PENDING"
+    assert field_metrics([{"field": "name", "expected": "A", "actual": "a"}, {"field": "dob", "expected": "1", "actual": "2"}], "dob").accuracy == 0.0
     assert reproducible_report("empty", [])["status"] == "DATASET_VALIDATION_PENDING"

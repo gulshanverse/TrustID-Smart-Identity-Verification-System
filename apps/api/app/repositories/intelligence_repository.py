@@ -46,6 +46,9 @@ class SqlAlchemyIntelligenceRepository:
     def get_document_for_verification_owner(self, verification_id: UUID, owner_id: UUID) -> DocumentModel | None:
         return self.db.scalar(select(DocumentModel).join(VerificationModel).where(DocumentModel.verification_id == verification_id, VerificationModel.id == verification_id, VerificationModel.owner_id == owner_id, DocumentModel.status != "DELETED").order_by(DocumentModel.created_at.desc()))
 
+    def get_documents_for_verification_owner(self, verification_id: UUID, owner_id: UUID) -> list[DocumentModel]:
+        return list(self.db.scalars(select(DocumentModel).join(VerificationModel).where(DocumentModel.verification_id == verification_id, VerificationModel.id == verification_id, VerificationModel.owner_id == owner_id, DocumentModel.status != "DELETED").order_by(DocumentModel.created_at)).all())
+
     def add_validation(self, result: DocumentValidationResult, actor_id: UUID) -> None:
         model = DocumentValidationModel(id=result.id, document_id=result.document_id, status=result.status.value, provider=result.provider, provider_version=result.provider_version, summary=result.summary, created_at=datetime.fromisoformat(result.created_at), updated_at=datetime.fromisoformat(result.updated_at))
         model.findings.extend(DocumentValidationFindingModel(id=uuid4(), validation_id=result.id, name=item.name, severity=item.severity.value, passed=item.passed, explanation=item.explanation, reference=item.reference, rule_id=item.rule_id, rule_version=item.rule_version, field=item.field, observed=item.observed, expected=item.expected) for item in result.findings)

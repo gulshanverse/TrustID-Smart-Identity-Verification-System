@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import NAMESPACE_URL, UUID, uuid5
 
+from app.domain.advanced_document_intelligence import CrossDocumentFinding
 from app.domain.external_verification import ExternalStatus, ExternalVerificationResult
 from app.domain.face import FaceOutcome, FaceVerificationResult
 from app.domain.ocr import OCRResult
@@ -73,6 +74,7 @@ class CorrelationResult:
     evidence: tuple[NormalizedEvidence, ...]
     findings: tuple[VerificationFinding, ...]
     summary: str
+    cross_document_findings: tuple[CrossDocumentFinding, ...] = ()
 
 
 def _id(verification_id: UUID, key: str) -> UUID:
@@ -91,7 +93,7 @@ def _item(verification_id: UUID, key: str, module: str, evidence_type: str, stat
     return NormalizedEvidence(_id(verification_id, key), verification_id, module, evidence_type, status, severity, confidence, score, explanation, code, provenance, _now())
 
 
-def correlate(verification_id: UUID, ocr: OCRResult, validation: DocumentValidationResult, tampering: TamperingResult, face: FaceVerificationResult, risk: RiskAssessmentResult, external: ExternalVerificationResult | None = None) -> CorrelationResult:
+def correlate(verification_id: UUID, ocr: OCRResult, validation: DocumentValidationResult, tampering: TamperingResult, face: FaceVerificationResult, risk: RiskAssessmentResult, external: ExternalVerificationResult | None = None, cross_document_findings: tuple[CrossDocumentFinding, ...] = ()) -> CorrelationResult:
     evidence: list[NormalizedEvidence] = []
     findings: list[VerificationFinding] = []
 
@@ -140,5 +142,5 @@ def correlate(verification_id: UUID, ocr: OCRResult, validation: DocumentValidat
 
     severity_order = {EvidenceSeverity.CRITICAL: 0, EvidenceSeverity.HIGH: 1, EvidenceSeverity.MEDIUM: 2, EvidenceSeverity.LOW: 3, EvidenceSeverity.INFO: 4}
     ordered_findings = tuple(sorted(findings, key=lambda item: (severity_order[item.severity], item.code)))
-    summary = f"Correlated {len(evidence)} evidence items and {len(ordered_findings)} findings across OCR, MRZ, validation, tampering, face, and risk modules."
-    return CorrelationResult(tuple(evidence), ordered_findings, summary)
+    summary = f"Correlated {len(evidence)} evidence items and {len(ordered_findings)} findings across OCR, MRZ, validation, tampering, face, risk, and cross-document modules."
+    return CorrelationResult(tuple(evidence), ordered_findings, summary, cross_document_findings)

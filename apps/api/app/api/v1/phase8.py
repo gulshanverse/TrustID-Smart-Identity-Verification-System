@@ -28,6 +28,7 @@ def phase8_summary(
         "risk": result.risk.model_dump(mode="json"),
         "evidence": [item.model_dump(mode="json") for item in result.evidence],
         "findings": [item.model_dump(mode="json") for item in result.findings],
+        "cross_document_findings": [item.model_dump(mode="json") for item in result.cross_document_findings],
         "capabilities": {
             "advanced_document_intelligence": "DETERMINISTIC_RULES",
             "cross_document_correlation": "SUPPORTED_FIELDS_ONLY",

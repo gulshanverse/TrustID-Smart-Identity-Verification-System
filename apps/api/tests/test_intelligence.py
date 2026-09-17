@@ -155,3 +155,7 @@ def test_orchestration_marks_missing_modules_unavailable(db: Session) -> None:
     assert result.tampering.status.value == "NOT_AVAILABLE"
     assert result.face.outcome.value == "NOT_AVAILABLE"
     assert any(item.status.value == "NOT_AVAILABLE" for item in result.correlation.evidence)
+    factors = {item.source_module: item.explanation for item in result.risk.factors}
+    assert "unavailable" in factors["ocr"]
+    assert "unavailable" in factors["tampering"]
+    assert "inconsistency detected" not in factors["tampering"]

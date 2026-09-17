@@ -20,6 +20,7 @@ from app.api.v1.face import router as face_router
 from app.api.v1.health import router as health_router
 from app.api.v1.intelligence import router as intelligence_router
 from app.api.v1.ocr import router as ocr_router
+from app.api.v1.phase8 import router as phase8_router
 from app.api.v1.reports import router as reports_router
 from app.api.v1.tampering import router as tampering_router
 from app.core.config import get_settings
@@ -98,6 +99,7 @@ app.include_router(console_router, prefix="/api/v1")
 app.include_router(document_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(ocr_router, prefix="/api/v1")
+app.include_router(phase8_router, prefix="/api/v1")
 app.include_router(tampering_router, prefix="/api/v1")
 app.include_router(face_router, prefix="/api/v1")
 app.include_router(external_router, prefix="/api/v1")

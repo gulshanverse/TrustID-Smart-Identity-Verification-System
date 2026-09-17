@@ -260,3 +260,8 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { color: var(--primary-strong); lett
 @media (max-width: 900px) { .analytics-metric-grid, .module-health-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 650px) { .analytics-grid, .report-form { grid-template-columns: 1fr; } .analytics-metric-grid, .module-health-grid { grid-template-columns: 1fr 1fr; } .analytics-demo-banner { display: grid; } }
 @media (max-width: 420px) { .analytics-metric-grid, .module-health-grid { grid-template-columns: 1fr; } }
+.camera-capture { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; display: grid; gap: 10px; margin-bottom: 14px; padding: 14px; }
+.camera-capture h3 { color: var(--primary-strong); font-size: 14px; margin: 0; }
+.camera-capture p { color: var(--text-muted); font-size: 11px; margin: 4px 0 0; }
+.camera-preview { background: #0f172a; border-radius: 8px; max-height: 300px; object-fit: contain; width: 100%; }
+.camera-actions { display: flex; flex-wrap: wrap; gap: 8px; }

@@ -40,7 +40,7 @@ def risk_response(result: RiskAssessmentResult) -> RiskResponse:
 
 
 def validation_response(result: DocumentValidationResult) -> ValidationResponse:
-    return ValidationResponse(id=result.id, document_id=result.document_id, status=result.status, provider=result.provider, summary=result.summary, findings=[ValidationFindingResponse(name=item.name, severity=item.severity, passed=item.passed, explanation=item.explanation, reference=item.reference) for item in result.findings])
+    return ValidationResponse(id=result.id, document_id=result.document_id, status=result.status, provider=result.provider, provider_version=result.provider_version, summary=result.summary, findings=[ValidationFindingResponse(name=item.name, severity=item.severity, passed=item.passed, explanation=item.explanation, reference=item.reference, rule_id=item.rule_id, rule_version=item.rule_version, field=item.field, observed=item.observed, expected=item.expected) for item in result.findings])
 
 
 def analysis_response(result: VerificationAnalysisResult) -> VerificationAnalysisResponse:

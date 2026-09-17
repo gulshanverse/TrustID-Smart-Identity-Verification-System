@@ -29,7 +29,7 @@ def _iso(value: datetime) -> str:
 
 
 def validation_from_model(model: DocumentValidationModel) -> DocumentValidationResult:
-    findings = tuple(ValidationFinding(item.name, ValidationSeverity(item.severity), item.passed, item.explanation, item.reference) for item in model.findings)
+    findings = tuple(ValidationFinding(item.name, ValidationSeverity(item.severity), item.passed, item.explanation, item.reference, item.rule_id, item.rule_version, item.field, item.observed, item.expected) for item in model.findings)
     return DocumentValidationResult(model.id, model.document_id, ValidationStatus(model.status), model.provider, model.provider_version, model.summary, findings, _iso(model.created_at), _iso(model.updated_at))
 
 
@@ -48,7 +48,7 @@ class SqlAlchemyIntelligenceRepository:
 
     def add_validation(self, result: DocumentValidationResult, actor_id: UUID) -> None:
         model = DocumentValidationModel(id=result.id, document_id=result.document_id, status=result.status.value, provider=result.provider, provider_version=result.provider_version, summary=result.summary, created_at=datetime.fromisoformat(result.created_at), updated_at=datetime.fromisoformat(result.updated_at))
-        model.findings.extend(DocumentValidationFindingModel(id=uuid4(), validation_id=result.id, name=item.name, severity=item.severity.value, passed=item.passed, explanation=item.explanation, reference=item.reference) for item in result.findings)
+        model.findings.extend(DocumentValidationFindingModel(id=uuid4(), validation_id=result.id, name=item.name, severity=item.severity.value, passed=item.passed, explanation=item.explanation, reference=item.reference, rule_id=item.rule_id, rule_version=item.rule_version, field=item.field, observed=item.observed, expected=item.expected) for item in result.findings)
         self.db.add(model)
         self.db.flush()
         document = self.db.get(DocumentModel, result.document_id)

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 from enum import StrEnum
-from typing import ClassVar
 from uuid import UUID, uuid4
 
-from app.domain.documents import DocumentRecord, DocumentType
+from app.domain.documents import DocumentRecord
 from app.domain.ocr import OCRResult
+from app.domain.rules import Clock, RuleResult, RulesEngine, RuleStatus
 
 
 class ValidationStatus(StrEnum):
@@ -30,6 +30,11 @@ class ValidationFinding:
     passed: bool
     explanation: str
     reference: str | None = None
+    rule_id: str | None = None
+    rule_version: str | None = None
+    field: str | None = None
+    observed: str | None = None
+    expected: str | None = None
 
 
 @dataclass(frozen=True)
@@ -43,6 +48,7 @@ class DocumentValidationResult:
     findings: tuple[ValidationFinding, ...]
     created_at: str
     updated_at: str
+    rules: tuple[RuleResult, ...] = ()
 
 
 class DocumentValidationProvider:
@@ -55,38 +61,38 @@ class DocumentValidationProvider:
 
 class DemoDocumentValidationProvider(DocumentValidationProvider):
     name = "DEMO / SIMULATED"
-    version = "1.0"
+    version = "phase5-rules-v1"
 
-    required_fields: ClassVar[dict[DocumentType, tuple[str, ...]]] = {
-        DocumentType.PASSPORT: ("full_name", "passport_number", "nationality", "date_of_birth", "expiry_date"),
-        DocumentType.VISA: ("visa_number", "visa_type", "entry_validity", "stay_duration"),
-    }
+    def __init__(self, clock: Clock | None = None) -> None:
+        self.engine = RulesEngine(clock)
+        self.last_rules: tuple[RuleResult, ...] = ()
 
     def validate(self, document: DocumentRecord, ocr: OCRResult) -> tuple[ValidationStatus, str, tuple[ValidationFinding, ...]]:
-        values = {field.name: field for field in ocr.fields}
-        findings: list[ValidationFinding] = []
-        required = self.required_fields.get(document.document_type, ("document_type", "reference"))
-        missing = [name for name in required if name not in values or not values[name].normalized_value]
-        findings.append(ValidationFinding("required_fields", ValidationSeverity.HIGH if missing else ValidationSeverity.INFO, not missing, "Required structured fields are present." if not missing else f"Required fields are missing: {', '.join(missing)}.", ",".join(missing) if missing else None))
-        if document.document_type == DocumentType.PASSPORT and "passport_number" in values:
-            valid = values["passport_number"].normalized_value.startswith("DEMO-P")
-            findings.append(ValidationFinding("document_number_format", ValidationSeverity.REVIEW, valid, "Document number matches the configured demo format." if valid else "Document number does not match the configured demo format.", "passport_number"))
-        expiry_name = "expiry_date" if document.document_type == DocumentType.PASSPORT else "entry_validity"
-        if expiry_name in values:
-            try:
-                expiry = date.fromisoformat(values[expiry_name].normalized_value)
-                valid = expiry >= datetime.now(UTC).date()
-            except ValueError:
-                valid = False
-            findings.append(ValidationFinding("validity", ValidationSeverity.HIGH if not valid else ValidationSeverity.INFO, valid, "Document validity date is current." if valid else "Document validity date is expired or malformed.", expiry_name))
+        rules = self.engine.evaluate(document.document_type, ocr)
+        self.last_rules = rules
+        findings = tuple(self._finding(rule) for rule in rules)
         if ocr.status.value != "COMPLETED":
-            return ValidationStatus.UNAVAILABLE, "Document validation is unavailable because OCR did not complete.", tuple(findings)
-        if any(not item.passed and item.severity == ValidationSeverity.HIGH for item in findings):
-            return ValidationStatus.FAILED, "Document validation found a significant structured-data issue.", tuple(findings)
-        if any(not item.passed for item in findings):
-            return ValidationStatus.REVIEW, "Document validation requires officer review.", tuple(findings)
-        return ValidationStatus.PASSED, "Document validation passed the configured deterministic rules.", tuple(findings)
+            return ValidationStatus.UNAVAILABLE, "Document validation is unavailable because OCR did not complete.", findings
+        if any(rule.status == RuleStatus.FAIL and rule.severity == "HIGH" for rule in rules):
+            return ValidationStatus.FAILED, "Document validation found a significant structured-data issue.", findings
+        if any(rule.status in {RuleStatus.FAIL, RuleStatus.REVIEW, RuleStatus.NOT_AVAILABLE} for rule in rules):
+            return ValidationStatus.REVIEW, "Document validation requires officer review.", findings
+        if all(rule.status == RuleStatus.NOT_APPLICABLE for rule in rules):
+            return ValidationStatus.REVIEW, "No applicable rules are configured for this document type.", findings
+        return ValidationStatus.PASSED, "Document validation passed the configured deterministic rules.", findings
+
+    @staticmethod
+    def _finding(rule: RuleResult) -> ValidationFinding:
+        severity = ValidationSeverity.HIGH if rule.severity == "HIGH" else ValidationSeverity.REVIEW if rule.severity == "REVIEW" else ValidationSeverity.INFO
+        # Preserve the existing UI/API's compact names while exposing full rule metadata.
+        name = "validity" if rule.rule_id in {"PASSPORT_EXPIRY_VALIDITY", "VISA_ENTRY_VALIDITY"} else "required_fields" if "_REQUIRED_" in rule.rule_id else rule.rule_id.lower()
+        passed = rule.status == RuleStatus.PASS
+        return ValidationFinding(name, severity, passed, rule.explanation, rule.field, rule.rule_id, rule.rule_version, rule.field, rule.observed, rule.expected)
 
 
 def new_validation_result_id() -> UUID:
     return uuid4()
+
+
+def validation_timestamp() -> str:
+    return datetime.now(UTC).isoformat()

@@ -18,6 +18,11 @@ class ValidationFindingResponse(BaseModel):
     passed: bool
     explanation: str
     reference: str | None
+    rule_id: str | None = None
+    rule_version: str | None = None
+    field: str | None = None
+    observed: str | None = None
+    expected: str | None = None
 
 
 class ValidationResponse(BaseModel):
@@ -25,6 +30,7 @@ class ValidationResponse(BaseModel):
     document_id: UUID
     status: ValidationStatus
     provider: str
+    provider_version: str | None = None
     summary: str
     findings: list[ValidationFindingResponse]
 

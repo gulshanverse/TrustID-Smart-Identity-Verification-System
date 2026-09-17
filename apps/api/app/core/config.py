@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     ocr_provider: str = "demo"
     tampering_provider: str = "demo"
     face_provider: str = "demo"
+    external_verification_provider: str = "production"
+    external_verification_timeout_seconds: float = 10.0
     face_model_path: str = "models/face_recognition_sface_2021dec.onnx"
     face_model_sha256: str | None = None
     face_detector: str = "haar"
@@ -50,6 +52,10 @@ class Settings(BaseSettings):
             raise ValueError("OCR_PROVIDER must be either demo or production.")
         if self.face_provider.lower() not in {"demo", "production"}:
             raise ValueError("FACE_VERIFICATION_PROVIDER must be either demo or production.")
+        if self.external_verification_provider.lower() not in {"demo", "production"}:
+            raise ValueError("EXTERNAL_VERIFICATION_PROVIDER must be either demo or production.")
+        if not 1 <= self.external_verification_timeout_seconds <= 60:
+            raise ValueError("EXTERNAL_VERIFICATION_TIMEOUT_SECONDS must be between 1 and 60.")
         if self.app_env.lower() == "production":
             required = {
                 "DATABASE_URL": self.database_url,

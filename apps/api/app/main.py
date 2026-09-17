@@ -14,6 +14,7 @@ from app.api.v1.cases import router as cases_router
 from app.api.v1.console import router as console_router
 from app.api.v1.documents import documents_router
 from app.api.v1.documents import router as document_router
+from app.api.v1.external import router as external_router
 from app.api.v1.face import router as face_router
 from app.api.v1.health import router as health_router
 from app.api.v1.intelligence import router as intelligence_router
@@ -98,6 +99,7 @@ app.include_router(documents_router, prefix="/api/v1")
 app.include_router(ocr_router, prefix="/api/v1")
 app.include_router(tampering_router, prefix="/api/v1")
 app.include_router(face_router, prefix="/api/v1")
+app.include_router(external_router, prefix="/api/v1")
 app.include_router(intelligence_router, prefix="/api/v1")
 app.include_router(cases_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")

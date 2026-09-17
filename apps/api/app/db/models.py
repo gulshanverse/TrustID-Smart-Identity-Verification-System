@@ -223,6 +223,11 @@ class DocumentValidationFindingModel(Base):
     passed: Mapped[bool] = mapped_column(nullable=False)
     explanation: Mapped[str] = mapped_column(String, nullable=False)
     reference: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    rule_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    rule_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    field: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    observed: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    expected: Mapped[str | None] = mapped_column(String(240), nullable=True)
     validation: Mapped[DocumentValidationModel] = relationship(back_populates="findings")
 
 

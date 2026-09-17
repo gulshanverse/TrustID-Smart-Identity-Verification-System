@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import NAMESPACE_URL, UUID, uuid5
 
+from app.domain.external_verification import ExternalStatus, ExternalVerificationResult
 from app.domain.face import FaceOutcome, FaceVerificationResult
 from app.domain.ocr import OCRResult
 from app.domain.risk import RiskAssessmentResult, RiskSeverity
@@ -90,7 +91,7 @@ def _item(verification_id: UUID, key: str, module: str, evidence_type: str, stat
     return NormalizedEvidence(_id(verification_id, key), verification_id, module, evidence_type, status, severity, confidence, score, explanation, code, provenance, _now())
 
 
-def correlate(verification_id: UUID, ocr: OCRResult, validation: DocumentValidationResult, tampering: TamperingResult, face: FaceVerificationResult, risk: RiskAssessmentResult) -> CorrelationResult:
+def correlate(verification_id: UUID, ocr: OCRResult, validation: DocumentValidationResult, tampering: TamperingResult, face: FaceVerificationResult, risk: RiskAssessmentResult, external: ExternalVerificationResult | None = None) -> CorrelationResult:
     evidence: list[NormalizedEvidence] = []
     findings: list[VerificationFinding] = []
 
@@ -129,6 +130,13 @@ def correlate(verification_id: UUID, ocr: OCRResult, validation: DocumentValidat
     for factor in risk.factors:
         if factor.contribution > 0:
             findings.append(VerificationFinding(_id(verification_id, f"finding:RISK:{factor.name}"), verification_id, "RISK_CONTRIBUTION", EvidenceStatus.REVIEW, EvidenceSeverity.HIGH if factor.severity == RiskSeverity.HIGH else EvidenceSeverity.MEDIUM, factor.name, factor.explanation, (risk_evidence.evidence_id,), _prov("RISK", "deterministic risk engine", risk.assessment_version, factor.source_module), factor.contribution, risk_evidence.created_at))
+
+    if external is not None:
+        external_status = EvidenceStatus.PASS if external.status == ExternalStatus.VERIFIED else EvidenceStatus.FAIL if external.status == ExternalStatus.NO_MATCH else EvidenceStatus.NOT_AVAILABLE if external.status == ExternalStatus.NOT_AVAILABLE else EvidenceStatus.INCONCLUSIVE
+        external_evidence = _item(verification_id, "external", "EXTERNAL_VERIFICATION", "DATABASE_RESULT", external_status, EvidenceSeverity.INFO if external_status == EvidenceStatus.PASS else EvidenceSeverity.MEDIUM, external.reason, f"EXTERNAL_{external.status.value}", _prov("EXTERNAL_VERIFICATION", external.provider, external.provider_version), None)
+        evidence.append(external_evidence)
+        if external.status == ExternalStatus.NO_MATCH:
+            findings.append(VerificationFinding(_id(verification_id, "finding:EXTERNAL_RECORD_MISMATCH"), verification_id, "EXTERNAL_RECORD_MISMATCH", EvidenceStatus.FAIL, EvidenceSeverity.HIGH, "External record did not match", "An authorized provider returned NO_MATCH. This is a contradiction requiring officer review, not confirmation of fraud.", (external_evidence.evidence_id,), external_evidence.provenance, 0, external_evidence.created_at))
 
     severity_order = {EvidenceSeverity.CRITICAL: 0, EvidenceSeverity.HIGH: 1, EvidenceSeverity.MEDIUM: 2, EvidenceSeverity.LOW: 3, EvidenceSeverity.INFO: 4}
     ordered_findings = tuple(sorted(findings, key=lambda item: (severity_order[item.severity], item.code)))

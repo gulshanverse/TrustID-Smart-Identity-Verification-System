@@ -25,4 +25,4 @@ def unavailable_tampering(verification_id: UUID, document_id: UUID) -> Tampering
 
 
 def unavailable_face(verification_id: UUID, document_id: UUID) -> FaceVerificationResult:
-    return FaceVerificationResult(unavailable_id(verification_id, "face"), verification_id, document_id, FaceVerificationStatus.FAILED, FaceOutcome.NOT_AVAILABLE, None, None, "UNAVAILABLE", "none", "Face verification is NOT_AVAILABLE.", None, FaceQuality.LOW_QUALITY, FaceQuality.LOW_QUALITY, None, (), "", "")
+    return FaceVerificationResult(unavailable_id(verification_id, "face"), verification_id, document_id, FaceVerificationStatus.NOT_AVAILABLE, FaceOutcome.NOT_AVAILABLE, None, None, "UNAVAILABLE", "none", "Face verification is NOT_AVAILABLE.", None, FaceQuality.LOW_QUALITY, FaceQuality.LOW_QUALITY, None, (), "", "")

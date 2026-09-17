@@ -14,6 +14,7 @@ from app.domain.face import (
     FaceScenario,
     FaceVerificationStatus,
 )
+from app.domain.unavailable import unavailable_face
 from app.repositories.document_repository import SqlAlchemyDocumentRepository
 from app.repositories.face_repository import SqlAlchemyFaceRepository
 from app.services.document_service import DocumentService
@@ -57,6 +58,13 @@ def test_demo_provider_supports_all_deterministic_scenarios() -> None:
         assert first == second
         assert DemoFaceVerificationProvider.name == "DEMO / SIMULATED"
         assert first[0] in {FaceOutcome.MATCH, FaceOutcome.NO_MATCH, FaceOutcome.REVIEW, FaceOutcome.NOT_AVAILABLE}
+
+
+def test_unavailable_face_has_consistent_unavailable_status() -> None:
+    result = unavailable_face(uuid4(), uuid4())
+    assert result.status == FaceVerificationStatus.NOT_AVAILABLE
+    assert result.outcome == FaceOutcome.NOT_AVAILABLE
+    assert result.status != FaceVerificationStatus.FAILED
 
 
 def test_configured_provider_is_cached_without_changing_explicit_mode() -> None:

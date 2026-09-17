@@ -8,6 +8,7 @@ from app.domain.face import FaceOutcome, FaceQuality, FaceVerificationResult, Fa
 from app.domain.ocr import OCRResult, OCRStatus
 from app.domain.risk import RiskAssessmentResult, RiskAssessmentStatus, RiskLevel
 from app.domain.tampering import TamperingResult, TamperingStatus
+from app.domain.unavailable import unavailable_face
 from app.domain.validation import DocumentValidationResult, ValidationStatus
 
 
@@ -219,3 +220,18 @@ def test_snapshot_excludes_generated_at_and_contains_safe_context():
     assert "generated_at" not in snapshot
     assert "raw_payload" not in str(snapshot).lower()
     assert "embedding" not in str(snapshot).lower()
+
+
+def test_unavailable_face_remains_unavailable_through_decision_intelligence():
+    verification_id, ocr, validation, tampering, _face, risk, _correlation = _decision_inputs()
+    face = unavailable_face(verification_id, ocr.document_id)
+    correlation = __import__("app.domain.evidence", fromlist=["correlate"]).correlate(verification_id, ocr, validation, tampering, face, risk)
+    face_evidence = next(item for item in correlation.evidence if item.source_module == "FACE")
+    assert face.status == FaceVerificationStatus.NOT_AVAILABLE
+    assert face.outcome == FaceOutcome.NOT_AVAILABLE
+    assert face_evidence.status.value == "NOT_AVAILABLE"
+    assert not any(item.code == "FACE_NO_MATCH" for item in correlation.findings)
+    result = DecisionIntelligenceService().build(verification_id, ocr, validation, tampering, face, risk, correlation)
+    assert any(item.code == "FACE_VERIFICATION_NOT_AVAILABLE" for item in result.missing_information)
+    assert not any(item.code == "FACE_NO_MATCH" for item in result.contradictions)
+    assert "fraud" not in str(result.snapshot()).lower()

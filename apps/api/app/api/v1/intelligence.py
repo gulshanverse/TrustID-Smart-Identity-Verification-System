@@ -77,7 +77,8 @@ def latest_result(verification_id: UUID, user: AuthUser, db: Session) -> Verific
         tampering = unavailable_tampering(verification_id, document.id)
     if face is None:
         face = unavailable_face(verification_id, document.id)
-    return analysis_response(VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk, correlate(verification_id, ocr, validation, tampering, face, risk)))
+    cross_document_findings = VerificationAnalysisService(db, user.id).cross_document_findings(verification_id)
+    return analysis_response(VerificationAnalysisResult(verification_id, document.id, ocr, validation, tampering, face, risk, correlate(verification_id, ocr, validation, tampering, face, risk, cross_document_findings=cross_document_findings)))
 
 
 @router.post("/{verification_id}/analyze", response_model=VerificationAnalysisResponse, status_code=status.HTTP_201_CREATED)

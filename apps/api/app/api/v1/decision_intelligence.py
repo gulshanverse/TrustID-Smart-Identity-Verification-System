@@ -25,6 +25,7 @@ from app.repositories.intelligence_repository import SqlAlchemyIntelligenceRepos
 from app.repositories.ocr_repository import SqlAlchemyOCRRepository
 from app.repositories.tampering_repository import SqlAlchemyTamperingRepository
 from app.services.auth_service import AuthUser
+from app.services.verification_analysis import VerificationAnalysisService
 
 router = APIRouter(prefix="/verifications", tags=["decision-intelligence"])
 
@@ -80,7 +81,8 @@ def _build(verification_id: UUID, user: AuthUser, db: Session) -> DecisionIntell
             external_model.demo,
         )
     )
-    correlation = correlate(verification_id, ocr, validation, tampering, face, risk, external)
+    cross_document_findings = VerificationAnalysisService(db, user.id).cross_document_findings(verification_id)
+    correlation = correlate(verification_id, ocr, validation, tampering, face, risk, external, cross_document_findings)
     return DecisionIntelligenceService().build(
         verification_id, ocr, validation, tampering, face, risk, correlation, external
     )

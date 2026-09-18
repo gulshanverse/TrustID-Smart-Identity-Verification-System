@@ -53,7 +53,7 @@ export function CameraCapture({ onCapture }: { onCapture: (file: File) => void }
     <div className="console-card-heading"><div><h3>Camera capture</h3><p>Optional browser capture. No device data is stored.</p></div></div>
     {state === "idle" && <button type="button" className="button button-secondary" onClick={() => void start()}>Use camera</button>}
     {(state === "starting" || state === "ready") && <><video ref={videoRef} autoPlay playsInline muted className="camera-preview" /><div className="camera-actions"><button type="button" className="button button-primary" disabled={state !== "ready"} onClick={capture}>Capture</button><button type="button" className="button button-secondary" onClick={retake}>Cancel</button></div></>}
-    {state === "captured" && <div className="upload-success" role="status"><strong>Camera capture ready.</strong><span>Review the preview above or retake before upload.</span><button type="button" className="button button-secondary" onClick={retake}>Retake</button></div>}
+    {state === "captured" && <div className="upload-success" role="status"><strong>Camera capture ready.</strong><span>Review the selected capture below or retake before upload.</span><button type="button" className="button button-secondary" onClick={retake}>Retake</button></div>}
     {(state === "denied" || state === "unsupported") && <p className="upload-error" role="alert">{message}</p>}
   </div>;
 }

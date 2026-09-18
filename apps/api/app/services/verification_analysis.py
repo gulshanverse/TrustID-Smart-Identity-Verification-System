@@ -58,7 +58,7 @@ class VerificationAnalysisService:
         self.face = SqlAlchemyFaceRepository(db)
         self.validation_provider = DemoDocumentValidationProvider()
 
-    def _cross_document_findings(self, verification_id: UUID) -> tuple[CrossDocumentFinding, ...]:
+    def cross_document_findings(self, verification_id: UUID) -> tuple[CrossDocumentFinding, ...]:
         documents = self.intelligence.get_documents_for_verification_owner(verification_id, self.actor_id)
         comparable_documents: list[tuple[str, dict[str, str | None]]] = []
         for document in documents:
@@ -159,7 +159,7 @@ class VerificationAnalysisService:
         existing_validation = self.intelligence.latest_validation(document.id)
         existing_risk = self.intelligence.latest_risk(verification_id, self.actor_id)
         if existing_validation is not None and existing_risk is not None:
-            cross_document_findings = self._cross_document_findings(verification_id)
+            cross_document_findings = self.cross_document_findings(verification_id)
             logger.info(
                 "verification_analysis_idempotent verification_id=%s outcome=COMPLETED duration_ms=%.2f",
                 verification_id,
@@ -241,7 +241,7 @@ class VerificationAnalysisService:
             )
             self.intelligence.add_validation(validation, self.actor_id)
             risk = assess_risk(verification_id, validation, tampering, face, ocr.overall_confidence)
-            cross_document_findings = self._cross_document_findings(verification_id)
+            cross_document_findings = self.cross_document_findings(verification_id)
             correlation = correlate(verification_id, ocr, validation, tampering, face, risk, cross_document_findings=cross_document_findings)
 
             # One coherent persistence transaction: no derived row is committed

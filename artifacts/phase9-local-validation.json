@@ -1,0 +1,98 @@
+{
+  "benchmark": {
+    "commit_sha": "01389704869f8ccc5a5615263673b828d409306b",
+    "elapsed_ms": 99.031,
+    "finding_count": 4,
+    "finding_fingerprint": "7fee305d041ce603bb241abb22809fbc5d79d107f06c709181adc0896e55b350",
+    "iterations": 1000,
+    "mean_ms": 0.099031,
+    "platform": "Linux-6.18.38+-x86_64-with-glibc2.39",
+    "production_performance_claim": false,
+    "python": "3.12.3",
+    "scope": "SYNTHETIC_FIXTURE_MICROBENCHMARK_ONLY",
+    "status": "LOCALLY_VALIDATED"
+  },
+  "capabilities": {
+    "advanced_forensics": {
+      "explanation": "Technical tampering signals remain provider-specific and review-oriented; no forensic certainty is claimed.",
+      "provider": "EXISTING_TAMPERING_BOUNDARY",
+      "status": "DATASET_VALIDATION_PENDING"
+    },
+    "cross_document_correlation": "LOCALLY_VALIDATED",
+    "live_object_storage": "EXTERNAL_VALIDATION_PENDING",
+    "live_postgresql": "EXTERNAL_VALIDATION_PENDING",
+    "live_redis": "EXTERNAL_VALIDATION_PENDING",
+    "liveness": {
+      "explanation": "No validated presentation-attack detection provider is configured; static face images are never labelled LIVE.",
+      "provider": "NONE",
+      "status": "NOT_IMPLEMENTED"
+    },
+    "production_face": "EXTERNAL_VALIDATION_PENDING",
+    "production_ocr": "EXTERNAL_VALIDATION_PENDING",
+    "risk_authority": "LOCALLY_VALIDATED"
+  },
+  "commit_sha": "01389704869f8ccc5a5615263673b828d409306b",
+  "configuration": {
+    "configured_variables": {
+      "APP_ENV": true,
+      "CORS_ORIGINS": false,
+      "DATABASE_URL": false,
+      "FACE_PROVIDER": false,
+      "NEXT_PUBLIC_API_URL": false,
+      "OBJECT_STORAGE_BUCKET": false,
+      "OBJECT_STORAGE_ENDPOINT": false,
+      "OCR_PROVIDER": false,
+      "REDIS_URL": false,
+      "TAMPERING_PROVIDER": false
+    },
+    "production_deployment": "EXTERNAL_VALIDATION_PENDING",
+    "secret_values_exposed": false,
+    "status": "LOCALLY_VALIDATED"
+  },
+  "environment": {
+    "platform": "Linux-6.18.38+-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "fixture_evaluation": {
+    "commit_sha": "01389704869f8ccc5a5615263673b828d409306b",
+    "dataset_fingerprint": "b7cbc51e8240917121cd61effb34b4e98fb05253f0a8f5e44981bf01b988c573",
+    "dataset_id": "phase9-fixture-v1",
+    "environment": {
+      "platform": "posix",
+      "python": "3.12.3"
+    },
+    "field_metrics": [
+      {
+        "accuracy": 1.0,
+        "exact_matches": 1,
+        "field": "date_of_birth",
+        "samples": 1
+      },
+      {
+        "accuracy": 1.0,
+        "exact_matches": 1,
+        "field": "full_name",
+        "samples": 1
+      }
+    ],
+    "limitations": [
+      "Metrics apply only to supplied labeled fixtures.",
+      "No production accuracy or demographic fairness claim is made."
+    ],
+    "model_version": "DETERMINISTIC_FIXTURE_RULES",
+    "production_accuracy_claim": false,
+    "sample_count": 2,
+    "status": "MEASURED",
+    "threshold": null,
+    "timestamp": "2026-09-18T21:21:00.806639+00:00",
+    "validation_scope": "FIXTURE_VALIDATION_ONLY"
+  },
+  "generated_at": "2026-09-18T21:21:00.800476+00:00",
+  "limitations": [
+    "No live credentials or managed services were contacted.",
+    "Fixture measurements are not production accuracy.",
+    "Liveness/PAD remains NOT_IMPLEMENTED.",
+    "No sensitive identity or biometric data was processed."
+  ],
+  "report_type": "PHASE_9_LOCAL_VALIDATION"
+}

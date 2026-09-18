@@ -1,11 +1,11 @@
 {
   "benchmark": {
-    "commit_sha": "01389704869f8ccc5a5615263673b828d409306b",
-    "elapsed_ms": 99.031,
+    "commit_sha": "229a3d24e5197780c4d7654abe05d648ea5e5434",
+    "elapsed_ms": 98.588,
     "finding_count": 4,
     "finding_fingerprint": "7fee305d041ce603bb241abb22809fbc5d79d107f06c709181adc0896e55b350",
     "iterations": 1000,
-    "mean_ms": 0.099031,
+    "mean_ms": 0.098588,
     "platform": "Linux-6.18.38+-x86_64-with-glibc2.39",
     "production_performance_claim": false,
     "python": "3.12.3",
@@ -31,7 +31,7 @@
     "production_ocr": "EXTERNAL_VALIDATION_PENDING",
     "risk_authority": "LOCALLY_VALIDATED"
   },
-  "commit_sha": "01389704869f8ccc5a5615263673b828d409306b",
+  "commit_sha": "229a3d24e5197780c4d7654abe05d648ea5e5434",
   "configuration": {
     "configured_variables": {
       "APP_ENV": true,
@@ -54,7 +54,7 @@
     "python": "3.12.3"
   },
   "fixture_evaluation": {
-    "commit_sha": "01389704869f8ccc5a5615263673b828d409306b",
+    "commit_sha": "229a3d24e5197780c4d7654abe05d648ea5e5434",
     "dataset_fingerprint": "b7cbc51e8240917121cd61effb34b4e98fb05253f0a8f5e44981bf01b988c573",
     "dataset_id": "phase9-fixture-v1",
     "environment": {
@@ -84,10 +84,10 @@
     "sample_count": 2,
     "status": "MEASURED",
     "threshold": null,
-    "timestamp": "2026-09-18T21:21:00.806639+00:00",
+    "timestamp": "2026-09-18T21:22:15.958174+00:00",
     "validation_scope": "FIXTURE_VALIDATION_ONLY"
   },
-  "generated_at": "2026-09-18T21:21:00.800476+00:00",
+  "generated_at": "2026-09-18T21:22:15.953630+00:00",
   "limitations": [
     "No live credentials or managed services were contacted.",
     "Fixture measurements are not production accuracy.",

@@ -6,6 +6,22 @@ This guide prepares the existing TrustID prototype for a controlled SIH 2026 dem
 
 Deploy the Next.js frontend to Vercel, the FastAPI API to one Render or equivalent service instance, PostgreSQL to a managed PostgreSQL provider, Redis to a managed Redis provider, and documents to a private S3-compatible bucket such as Cloudflare R2. MinIO remains a local-development dependency. Do not configure multiple API replicas because authentication and sessions currently use in-process memory. The production face image is built from `apps/api/Dockerfile`; it installs OpenCV and downloads the pinned SFace/YuNet assets through checksum-verifying `apps/api/scripts/provision_face_models.sh`.
 
+### Render Docker build context
+
+The API Dockerfile is intentionally written for `apps/api` as its build context. Configure the Render Docker web service as follows:
+
+| Render setting | Required value |
+| --- | --- |
+| Runtime | Docker |
+| Root Directory | `apps/api` |
+| Dockerfile Path | `./Dockerfile` |
+| Health Check Path | `/api/v1/health` |
+| Auto-Deploy | Enabled if desired |
+
+With this configuration, Docker `COPY pyproject.toml ./`, `COPY app ./app`, and `COPY scripts/provision_face_models.sh ...` resolve inside `apps/api`. Do not configure repository root as the Docker build context while pointing at `apps/api/Dockerfile`; that context does not contain the paths expected by the Dockerfile and fails before dependency installation. The repository root also does not contain a backend `pyproject.toml` or `app/` directory.
+
+The equivalent declarative configuration is committed in [`render.yaml`](../render.yaml). It contains only non-secret defaults; all database, Redis, object-storage, CORS, and demo-password values remain unsynchronized secret settings.
+
 ## Required services and variables
 
 The API requires PostgreSQL, Redis configuration, and a private S3-compatible bucket. Set these server-only variables on the API service:
@@ -51,7 +67,7 @@ cd apps/api
 alembic upgrade head
 ```
 
-The migration chain currently ends at `014_auth_and_idempotency_integrity`. The CI-safe validation command is:
+The migration chain currently ends at `015_analysis_processing_timestamp`. The CI-safe validation command is:
 
 ```bash
 alembic upgrade --sql head

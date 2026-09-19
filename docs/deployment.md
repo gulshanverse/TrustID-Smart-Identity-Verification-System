@@ -67,7 +67,7 @@ cd apps/api
 alembic upgrade head
 ```
 
-The migration chain currently ends at `015_analysis_processing_timestamp`. The CI-safe validation command is:
+The migration chain currently ends at `015_analysis_processing_time`. Revision identifiers are kept at or below PostgreSQL Alembic's `VARCHAR(32)` version-table limit. The CI-safe validation command is:
 
 ```bash
 alembic upgrade --sql head

@@ -1,6 +1,6 @@
 """add durable auth sessions and idempotency constraints
 
-Revision ID: 014_auth_and_idempotency_integrity
+Revision ID: 014_auth_idempotency
 Revises: 013_decision_context_snapshot
 """
 from collections.abc import Sequence
@@ -8,7 +8,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "014_auth_and_idempotency_integrity"
+revision: str = "014_auth_idempotency"
 down_revision: str | None = "013_decision_context_snapshot"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

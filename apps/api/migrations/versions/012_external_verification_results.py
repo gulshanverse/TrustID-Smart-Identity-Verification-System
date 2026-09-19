@@ -1,6 +1,6 @@
 """persist normalized external verification results
 
-Revision ID: 012_external_verification_results
+Revision ID: 012_external_verify_results
 Revises: 011_phase5_rule_metadata
 """
 from collections.abc import Sequence
@@ -8,7 +8,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "012_external_verification_results"
+revision: str = "012_external_verify_results"
 down_revision: str | None = "011_phase5_rule_metadata"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

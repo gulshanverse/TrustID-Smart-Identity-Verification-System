@@ -1,15 +1,15 @@
 """add durable analysis processing timestamp
 
-Revision ID: 015_analysis_processing_timestamp
-Revises: 014_auth_and_idempotency_integrity
+Revision ID: 015_analysis_processing_time
+Revises: 014_auth_idempotency
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "015_analysis_processing_timestamp"
-down_revision: str | None = "014_auth_and_idempotency_integrity"
+revision: str = "015_analysis_processing_time"
+down_revision: str | None = "014_auth_idempotency"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

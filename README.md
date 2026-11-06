@@ -1,4 +1,4 @@
-# TrustID : Identity Verification and Real Time Varification 
+# TrustID : Identity Verification and Real Time Varification System 
 
 TrustID is an AI-assisted identity and document screening platform for Smart India Hackathon problem statement 26188: **AI-Based Fake Identity & Document Screening System**. The product promise is **Verify. Detect. Protect.** It is decision support for authorized personnel, not an autonomous legal or criminality determination system.
 
